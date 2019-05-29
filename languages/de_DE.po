@@ -1,0 +1,275 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP-Mail-Validator\n"
+"POT-Creation-Date: 2019-05-29 19:24+0200\n"
+"PO-Revision-Date: 2019-05-29 19:25+0200\n"
+"Last-Translator: Marcus Kimpenhaus <marcus@kimpenhaus.de>\n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.3\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: wp-mail-validator.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+
+#: wp-mail-validator.php:105
+msgid "WP-Mail-Validator options updated"
+msgstr "WP-Mail-Validator-Einstellungen wurden aktualisiert"
+
+#: wp-mail-validator.php:108
+msgid "WP-Mail-Validator trashmail service blacklist restored"
+msgstr ""
+"WP-Mail-Validator Trashmail Service Blackliste wurde wieder hergestellt"
+
+#: wp-mail-validator.php:114
+msgid "Dismiss this notice"
+msgstr "Hinweis ausblenden"
+
+#: wp-mail-validator.php:119
+msgid "WP-Mail-Validator Statistics"
+msgstr "WP-Mail-Validator-Statistiken"
+
+#: wp-mail-validator.php:121
+msgid "Version"
+msgstr "Version"
+
+#: wp-mail-validator.php:122
+msgid "Spam attackes fended"
+msgstr "Spam Angriffe abgewehrt"
+
+#: wp-mail-validator.php:126
+msgid "WP-Mail-Validator Options"
+msgstr "WP-Mail-Validator-Einstellungen"
+
+#: wp-mail-validator.php:132
+msgid "Default-gateway IP"
+msgstr "Standard-Gateway IP"
+
+#: wp-mail-validator.php:134
+msgid "Leave blank to use the default gateway"
+msgstr "Leer, um das Default-Gateway zu nutzen"
+
+#: wp-mail-validator.php:141
+msgid "Validate Registrations"
+msgstr "Registrierungen validieren"
+
+#: wp-mail-validator.php:147 wp-mail-validator.php:162
+#: wp-mail-validator.php:177 wp-mail-validator.php:192
+#: wp-mail-validator.php:207 wp-mail-validator.php:222
+#: wp-mail-validator.php:237 wp-mail-validator.php:260
+msgid "Yes"
+msgstr "Ja"
+
+#: wp-mail-validator.php:152 wp-mail-validator.php:167
+#: wp-mail-validator.php:182 wp-mail-validator.php:197
+#: wp-mail-validator.php:212 wp-mail-validator.php:227
+#: wp-mail-validator.php:242 wp-mail-validator.php:265
+msgid "No"
+msgstr "Nein"
+
+#: wp-mail-validator.php:152
+msgid "Choose to validate registrants mail-address"
+msgstr "Auswählen, um die Mailadresse bei der Registrierung zu validieren"
+
+#: wp-mail-validator.php:156
+msgid "Accept Pingbacks"
+msgstr "Pingbacks akzeptieren"
+
+#: wp-mail-validator.php:167
+msgid ""
+"Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, "
+"because they're not carrying a mail-address to validate)</strong>"
+msgstr ""
+"Auswählen, um Pingbacks zu erlauben <strong>(Pingbacks bieten ein Spam-"
+"Potential, da sie keine Mailadresse liefern, die validiert werden kann)</"
+"strong>"
+
+#: wp-mail-validator.php:171
+msgid "Accept Trackbacks"
+msgstr "Trackbacks akzeptieren"
+
+#: wp-mail-validator.php:182
+msgid ""
+"Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, "
+"because they're not carrying a mail-address to validate)</strong>"
+msgstr ""
+"Auswählen, um Trackbacks zu erlauben <strong>(Trackbacks bieten ein Spam-"
+"Potential, da sie keine Mailadresse liefern, die validiert werden kann)</"
+"strong>"
+
+#: wp-mail-validator.php:186
+msgid "Ignore connection failures"
+msgstr "Verbindungsfehler ignorieren"
+
+#: wp-mail-validator.php:197
+msgid ""
+"Choose to ignore connection failures with mail servers while validating mail-"
+"addresses"
+msgstr ""
+"Auswählen, um Verbindungsfehler zum Mailserver die während der Validierung "
+"einer Mailadresse auftreten, zu ignorieren"
+
+#: wp-mail-validator.php:201
+msgid "Ignore rejected requests"
+msgstr "Abgewiesene Anfragen ignorieren"
+
+#: wp-mail-validator.php:212
+msgid ""
+"Choose to ignore rejected request from mail servers while validating mail-"
+"addresses"
+msgstr "Auswählen, um vom Mailserver abgewiesen Anfragen zu ignorieren"
+
+#: wp-mail-validator.php:216
+msgid "Accept syntactical correct mail-addresses"
+msgstr "Syntaktisch korrekte Mailadressen akzeptieren"
+
+#: wp-mail-validator.php:227
+msgid ""
+"Choose if syntactical correct mail-addresses can pass when the mail server "
+"did not respond in time"
+msgstr ""
+"Auswählen, um syntaktisch korrekte Mailadressen zu akzeptieren, auch wenn "
+"der Mailserver bei der Anfrage nicht rechtzeitig antwortet"
+
+#: wp-mail-validator.php:231
+msgid "Reject mail-adresses from trashmail services"
+msgstr "Mailadressen von Trashmail Diensten ablehnen"
+
+#: wp-mail-validator.php:249
+msgid ""
+"Choose to reject mail-addresses from trashmail services <strong>(single "
+"entry per line)</strong>"
+msgstr "Auswählen, um Mailadressen von Trashmail Diensten abzulehnen"
+
+#: wp-mail-validator.php:250
+msgid "Restore trashmail service blacklist &raquo;"
+msgstr "Trashmail Dienst Blacklist wiederherstellen &raquo;"
+
+#: wp-mail-validator.php:254
+msgid "Reject mail-adresses from user-defined blacklist"
+msgstr "Mailadressen der Blacklist ablehnen"
+
+#: wp-mail-validator.php:272
+msgid ""
+"Choose to reject mail-addresses from a user-defined blacklist "
+"<strong>(single entry per line)</strong>"
+msgstr ""
+"Auswählen, um Mailadressen, deren Host in der Blacklist gepflegt sind, "
+"ablehnen <strong>(ein Eintrag pro Zeile)</strong>"
+
+#: wp-mail-validator.php:276
+msgid "Update Options &raquo;"
+msgstr "Einstellungen speichern &raquo;"
+
+#: wp-mail-validator.php:326
+msgid "Error: No Trackbacks are allowed"
+msgstr "Fehler: Trackbacks sind nicht erlaubt"
+
+#: wp-mail-validator.php:335
+msgid "Error: No Pingbacks are allowed"
+msgstr "Fehler: Pingbacks sind nicht erlaubt"
+
+#: wp-mail-validator.php:369
+msgid "Error: Your mail-address was blacklisted"
+msgstr "Fehler: Deine Mailadresse ist blacklisted"
+
+#: wp-mail-validator.php:381
+msgid "Error: Trashmail services are not allowed"
+msgstr "Fehler: Trashmail Services sind nicht erlaubt"
+
+#: wp-mail-validator.php:394
+msgid "Error: This mail-address is not registered with the given mail-server"
+msgstr "Fehler: Diese Mailadresse ist dem Mailserver nicht bekannt"
+
+#: wp-mail-validator.php:399
+msgid "Error: Please enter a valid mail-server host"
+msgstr "Fehler: Bitte einen gültigen Mailserver Host eintragen"
+
+#: wp-mail-validator.php:405
+msgid "Error: Please enter a valid mail-address"
+msgstr "Fehler: Bitte eine gültige Mailadresse eintragen"
+
+#: wp-mail-validator.php:411
+msgid "Error: Timeout while trying to verify your mail-address"
+msgstr "Fehler: Zeitüberschreitung bei der Validierung deiner Mailadresse"
+
+#: wp-mail-validator.php:418
+msgid "Error: The mail-server did not accepted the request"
+msgstr "Fehler: Der Mailserver hat die Anfrage abgelehnt"
+
+#: wp-mail-validator.php:430
+msgid ""
+"Error: Your mail-address syntax is correct, but your mail-server did not "
+"respond in time"
+msgstr ""
+"Fehler: Die Mailadresse ist syntaktisch korrekt, aber der Mailserver hat "
+"nicht geantwortet"
+
+#: wp-mail-validator.php:457
+msgid "Protected by"
+msgstr "Geschützt durch"
+
+#: wp-mail-validator.php:457
+msgid "spam attacks fended"
+msgstr "Spam Angriffe abgewehrt"
+
+#. Plugin Name of the plugin/theme
+msgid "WP-Mail-Validator"
+msgstr "WP-Mail-Validator"
+
+#. Plugin URI of the plugin/theme
+msgid "https://github.com/kimpenhaus/wp-mail-validator"
+msgstr "https://github.com/kimpenhaus/wp-mail-validator"
+
+#. Description of the plugin/theme
+msgid ""
+"WP-Mail-Validator is an anti-spam plugin. It provides mail-address "
+"validation in 5 ways: 1. syntax 2. host 3. mx-record of mailserver 4. refuse "
+"from user-defined blacklist 5. refuse trashmail services"
+msgstr ""
+"WP-Mail-Validator ist  ein Anti-Spam Plugin. Es bietet eine Mailadressen-"
+"Validierung in 5 Stufen: 1. Syntax 2. Mail-Server 3. MX-Eintrag eines "
+"Mailservers 4. Eine benutzerdefinierte Blacklist 5. Ablehnung von Trashmail "
+"Diensten"
+
+#. Author of the plugin/theme
+msgid "Marcus Kimpenhaus"
+msgstr "Marcus Kimpenhaus"
+
+#. Author URI of the plugin/theme
+msgid "https://github.com/kimpenhaus/"
+msgstr "https://github.com/kimpenhaus/"
+
+#~ msgid "comment eaten"
+#~ msgstr "Kommentar abgelehnt"
+
+#~ msgid "comments eaten"
+#~ msgstr "Kommentare abgelehnt"
+
+#~ msgid "http://blog.kimpenhaus.de/"
+#~ msgstr "http://blog.kimpenhaus.de/"
+
+#~ msgid "Current Version:<i>%s</i>"
+#~ msgstr "Aktuelle Version: <i> %s </i>"
+
+#~ msgid "Statistics"
+#~ msgstr "Statistiken"
+
+#~ msgid ""
+#~ "Since installation WP-Mail-Validator blocked <i><b>%s</b></i> spam "
+#~ "comments"
+#~ msgstr ""
+#~ "Seit Installation hat WP-Mail-Validator <i><b>%s</b></i> Spam-Kommentare "
+#~ "geblockt"
+
+#~ msgid "Options"
+#~ msgstr "Einstellungen"
