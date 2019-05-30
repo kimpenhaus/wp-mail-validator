@@ -273,7 +273,7 @@ function wp_mail_validator_options_page()
     <h1>' . __('Statistics', $text_domain) . '</h1>
     <div class="card">
         <p>' . sprintf(__('Version', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_version()) . '&nbsp;|
-        ' . sprintf(__('Spam attackes fended', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_fended_spam_attack_count()) . '</p>
+        ' . sprintf(__('Spam attacks fended', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_fended_spam_attack_count()) . '</p>
         <p><a href="https://github.com/kimpenhaus/wp-mail-validator/wiki">' . __('Documentation', $text_domain) . '</a>&nbsp;|
         <a href="https://github.com/kimpenhaus/wp-mail-validator/issues">' . __('Issue Tracker', $text_domain) . '</a></p>
     </div>

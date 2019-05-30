@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP-Mail-Validator\n"
-"POT-Creation-Date: 2019-05-30 11:39+0200\n"
+"POT-Creation-Date: 2019-05-30 11:54+0200\n"
 "PO-Revision-Date: 2019-05-25 20:21+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -154,7 +154,7 @@ msgid "Version"
 msgstr ""
 
 #: wp-mail-validator.php:276
-msgid "Spam attackes fended"
+msgid "Spam attacks fended"
 msgstr ""
 
 #: wp-mail-validator.php:277

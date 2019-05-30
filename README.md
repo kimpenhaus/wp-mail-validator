@@ -2,7 +2,7 @@
 
 Contributors: kimpenhaus
 Tags: comments, registrations, spam, anti-spam, mail, email, validation, check, security, blacklist, mx-record, trashmail
-Stable tag: 0.5.1
+Stable tag: 0.5.2
 Tested up to: 5.2.1
 Requires at least: 5.2.0
 License: GPLv3
@@ -32,6 +32,8 @@ WP-Mail-Validator comes with 3 theme functions that can be used:
 3. `wp_mail_validator_fended_spam_attack_count()`: shows the count of spam attackes fended
 
 == Changelog ==
+= 0.5.2 =
+* fixed misspelling
 
 = 0.5.1 =
 * added links to wiki and issue tracker
