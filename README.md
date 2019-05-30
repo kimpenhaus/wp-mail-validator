@@ -32,6 +32,7 @@ WP-Mail-Validator comes with 3 theme functions that can be used:
 3. `wp_mail_validator_fended_spam_attack_count()`: shows the count of spam attackes fended
 
 == Changelog ==
+
 = 0.5.2 =
 * fixed misspelling
 
