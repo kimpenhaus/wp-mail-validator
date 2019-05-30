@@ -3,7 +3,7 @@
 Plugin Name: WP-Mail-Validator
 Plugin URI: https://github.com/kimpenhaus/wp-mail-validator
 Description: WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in 5 ways: 1. syntax 2. host 3. mx-record of mailserver 4. refuse from user-defined blacklist 5. refuse trashmail services
-Version: 0.5
+Version: 0.5.1
 Author: Marcus Kimpenhaus
 Author URI: https://github.com/kimpenhaus/
 Text Domain: wp-mail-validator
@@ -115,15 +115,8 @@ function wp_mail_validator_options_page()
     }
 
     echo '
-    <div class="wrap">
-    <h1>' . __('WP-Mail-Validator Statistics', $text_domain) . '</h1>
-    <div class="card">
-        <p>' . sprintf(__('Version', $text_domain) . ': %s', wp_mail_validator_version()) . '</p>
-        <p>' . sprintf(__('Spam attackes fended', $text_domain) . ': %s', wp_mail_validator_fended_spam_attack_count()) . '</p>
-    </div>
-    </div>
 	<div class="wrap">
-	<h1>' . __('WP-Mail-Validator Options', $text_domain) . '</h1>
+	<h1>' . __('Settings', $text_domain) . '</h1>
 	<form name="wp_mail_validator_options" method="post">
 	<input type="hidden" name="wp_mail_validator_options_update_type" value="update" />
     <table width="100%" cellspacing="2" cellpadding="5" class="form-table">';
@@ -213,7 +206,7 @@ function wp_mail_validator_options_page()
 				</td>
 			</tr>
 			<tr>
-				<th scope="row">' . __('Accept syntactical correct mail-addresses', $text_domain) . ':</th>
+				<th scope="row">' . __('Accept syntactically correct mail-addresses', $text_domain) . ':</th>
 				<td>
 				<label><input name="accept_correct_syntax_on_server_timeout" type="radio" value="yes" ';
     if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'yes') {
@@ -224,7 +217,7 @@ function wp_mail_validator_options_page()
     if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'no') {
         echo 'checked="checked" ';
     }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose if syntactical correct mail-addresses can pass when the mail server did not respond in time', $text_domain) . '.</p>
+    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose if syntactically correct mail-addresses can pass when the mail server did not respond in time', $text_domain) . '.</p>
 				</td>
 			</tr>
 			<tr>
@@ -247,7 +240,7 @@ function wp_mail_validator_options_page()
 				<td>
                 <label><textarea name="trashmail_service_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['trashmail_service_blacklist'] . '</textarea></label>
                 <p class="description">' . __('Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', $text_domain) . '.</p>
-                <p class="submit"><input class="button button-primary" type="submit" id="trashmail_service_blacklist_restore" name="submit" value="' . __('Restore trashmail service blacklist &raquo;', $text_domain) . '" /></p>
+                <p class="submit"><input class="button button-primary" type="submit" id="trashmail_service_blacklist_restore" name="submit" value="' . __('Restore default blacklist', $text_domain) . '" /></p>
 				</td>
             </tr>
 			<tr>
@@ -273,8 +266,17 @@ function wp_mail_validator_options_page()
 				</td>
             </tr>
 		</table> 
-	<p class="submit"><input class="button button-primary" type="submit" id="options_update" name="submit" value="' . __('Update Options &raquo;', $text_domain) . '" /></p>
+	<p class="submit"><input class="button button-primary" type="submit" id="options_update" name="submit" value="' . __('Save Changes', $text_domain) . '" /></p>
     </form>
+    </div>
+    <div class="wrap">
+    <h1>' . __('Statistics', $text_domain) . '</h1>
+    <div class="card">
+        <p>' . sprintf(__('Version', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_version()) . '&nbsp;|
+        ' . sprintf(__('Spam attackes fended', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_fended_spam_attack_count()) . '</p>
+        <p><a href="https://github.com/kimpenhaus/wp-mail-validator/wiki">' . __('Documentation', $text_domain) . '</a>&nbsp;|
+        <a href="https://github.com/kimpenhaus/wp-mail-validator/issues">' . __('Issue Tracker', $text_domain) . '</a></p>
+    </div>
     </div>
     ';
 }

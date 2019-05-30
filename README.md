@@ -1,10 +1,10 @@
 === WP-Mail-Validator ===
 
 Contributors: kimpenhaus
-Tags: comments, spam, mail, security, registration, blacklist
-Stable tag: 0.5.0
+Tags: comments, registrations, spam, anti-spam, mail, email, validation, check, security, blacklist, mx-record, trashmail
+Stable tag: 0.5.1
 Tested up to: 5.2.1
-Requires at least: 5.2.1
+Requires at least: 5.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -12,11 +12,11 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in 5 ways:
 
-1. syntax
-2. host
+1. syntax of mail-addresses
+2. mailserver host
 3. mx-record of mailserver
-4. refuse from user-defined blacklist
-5. refuse trashmail services
+4. user-defined blacklist
+5. trashmail services
 
 == Installation ==
 
@@ -33,8 +33,12 @@ WP-Mail-Validator comes with 3 theme functions that can be used:
 
 == Changelog ==
 
+= 0.5.1 =
+* added links to wiki and issue tracker
+* tiny reorganisation of settings page
+
 = 0.5 =
-* Updated to WordPress v5.2.1
+* updated to WordPress v5.2.1
 * added trashmail service blacklist
 * added registration validation
 
