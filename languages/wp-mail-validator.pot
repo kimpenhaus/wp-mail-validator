@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP-Mail-Validator\n"
-"POT-Creation-Date: 2019-05-30 11:54+0200\n"
+"POT-Creation-Date: 2019-07-17 14:09+0200\n"
 "PO-Revision-Date: 2019-05-25 20:21+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -21,198 +21,160 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.min.js\n"
 
-#: wp-mail-validator.php:105
+#: wp-mail-validator.php:170
+msgid "<strong>ERROR</strong>: Your mail-address is evaluated as spam."
+msgstr ""
+
+#: wp-mail-validator.php:262
+msgid "Protected by"
+msgstr ""
+
+#: wp-mail-validator.php:262
+msgid "spam attacks fended"
+msgstr ""
+
+#: wp-mail-validator.php:302
 msgid "WP-Mail-Validator options updated"
 msgstr ""
 
-#: wp-mail-validator.php:108
+#: wp-mail-validator.php:305
 msgid "WP-Mail-Validator trashmail service blacklist restored"
 msgstr ""
 
-#: wp-mail-validator.php:114
+#: wp-mail-validator.php:311
 msgid "Dismiss this notice"
 msgstr ""
 
-#: wp-mail-validator.php:119
+#: wp-mail-validator.php:316
 msgid "Settings"
 msgstr ""
 
-#: wp-mail-validator.php:125
+#: wp-mail-validator.php:322
 msgid "Default-gateway IP"
 msgstr ""
 
-#: wp-mail-validator.php:127
+#: wp-mail-validator.php:324
 msgid "Leave blank to use the default gateway"
 msgstr ""
 
-#: wp-mail-validator.php:134
+#: wp-mail-validator.php:331
 msgid "Validate Registrations"
 msgstr ""
 
-#: wp-mail-validator.php:140 wp-mail-validator.php:155
-#: wp-mail-validator.php:170 wp-mail-validator.php:185
-#: wp-mail-validator.php:200 wp-mail-validator.php:215
-#: wp-mail-validator.php:230 wp-mail-validator.php:253
+#: wp-mail-validator.php:337 wp-mail-validator.php:352
+#: wp-mail-validator.php:367 wp-mail-validator.php:382
+#: wp-mail-validator.php:397 wp-mail-validator.php:412
+#: wp-mail-validator.php:427 wp-mail-validator.php:450
 msgid "Yes"
 msgstr ""
 
-#: wp-mail-validator.php:145 wp-mail-validator.php:160
-#: wp-mail-validator.php:175 wp-mail-validator.php:190
-#: wp-mail-validator.php:205 wp-mail-validator.php:220
-#: wp-mail-validator.php:235 wp-mail-validator.php:258
+#: wp-mail-validator.php:342 wp-mail-validator.php:357
+#: wp-mail-validator.php:372 wp-mail-validator.php:387
+#: wp-mail-validator.php:402 wp-mail-validator.php:417
+#: wp-mail-validator.php:432 wp-mail-validator.php:455
 msgid "No"
 msgstr ""
 
-#: wp-mail-validator.php:145
+#: wp-mail-validator.php:342
 msgid "Choose to validate registrants mail-address"
 msgstr ""
 
-#: wp-mail-validator.php:149
+#: wp-mail-validator.php:346
 msgid "Accept Pingbacks"
 msgstr ""
 
-#: wp-mail-validator.php:160
+#: wp-mail-validator.php:357
 msgid ""
 "Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, "
 "because they're not carrying a mail-address to validate)</strong>"
 msgstr ""
 
-#: wp-mail-validator.php:164
+#: wp-mail-validator.php:361
 msgid "Accept Trackbacks"
 msgstr ""
 
-#: wp-mail-validator.php:175
+#: wp-mail-validator.php:372
 msgid ""
 "Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, "
 "because they're not carrying a mail-address to validate)</strong>"
 msgstr ""
 
-#: wp-mail-validator.php:179
+#: wp-mail-validator.php:376
 msgid "Ignore connection failures"
 msgstr ""
 
-#: wp-mail-validator.php:190
+#: wp-mail-validator.php:387
 msgid ""
 "Choose to ignore connection failures with mail servers while validating mail-"
 "addresses"
 msgstr ""
 
-#: wp-mail-validator.php:194
+#: wp-mail-validator.php:391
 msgid "Ignore rejected requests"
 msgstr ""
 
-#: wp-mail-validator.php:205
+#: wp-mail-validator.php:402
 msgid ""
 "Choose to ignore rejected request from mail servers while validating mail-"
 "addresses"
 msgstr ""
 
-#: wp-mail-validator.php:209
+#: wp-mail-validator.php:406
 msgid "Accept syntactically correct mail-addresses"
 msgstr ""
 
-#: wp-mail-validator.php:220
+#: wp-mail-validator.php:417
 msgid ""
 "Choose if syntactically correct mail-addresses can pass when the mail server "
 "did not respond in time"
 msgstr ""
 
-#: wp-mail-validator.php:224
+#: wp-mail-validator.php:421
 msgid "Reject mail-adresses from trashmail services"
 msgstr ""
 
-#: wp-mail-validator.php:242
+#: wp-mail-validator.php:439
 msgid ""
 "Choose to reject mail-addresses from trashmail services <strong>(single "
 "entry per line)</strong>"
 msgstr ""
 
-#: wp-mail-validator.php:243
+#: wp-mail-validator.php:440
 msgid "Restore default blacklist"
 msgstr ""
 
-#: wp-mail-validator.php:247
+#: wp-mail-validator.php:444
 msgid "Reject mail-adresses from user-defined blacklist"
 msgstr ""
 
-#: wp-mail-validator.php:265
+#: wp-mail-validator.php:462
 msgid ""
 "Choose to reject mail-addresses from a user-defined blacklist "
 "<strong>(single entry per line)</strong>"
 msgstr ""
 
-#: wp-mail-validator.php:269
+#: wp-mail-validator.php:466
 msgid "Save Changes"
 msgstr ""
 
-#: wp-mail-validator.php:273
+#: wp-mail-validator.php:470
 msgid "Statistics"
 msgstr ""
 
-#: wp-mail-validator.php:275
+#: wp-mail-validator.php:472
 msgid "Version"
 msgstr ""
 
-#: wp-mail-validator.php:276
+#: wp-mail-validator.php:473
 msgid "Spam attacks fended"
 msgstr ""
 
-#: wp-mail-validator.php:277
+#: wp-mail-validator.php:474
 msgid "Documentation"
 msgstr ""
 
-#: wp-mail-validator.php:278
+#: wp-mail-validator.php:475
 msgid "Issue Tracker"
-msgstr ""
-
-#: wp-mail-validator.php:328
-msgid "Error: No Trackbacks are allowed"
-msgstr ""
-
-#: wp-mail-validator.php:337
-msgid "Error: No Pingbacks are allowed"
-msgstr ""
-
-#: wp-mail-validator.php:371
-msgid "Error: Your mail-address was blacklisted"
-msgstr ""
-
-#: wp-mail-validator.php:383
-msgid "Error: Trashmail services are not allowed"
-msgstr ""
-
-#: wp-mail-validator.php:396
-msgid "Error: This mail-address is not registered with the given mail-server"
-msgstr ""
-
-#: wp-mail-validator.php:401
-msgid "Error: Please enter a valid mail-server host"
-msgstr ""
-
-#: wp-mail-validator.php:407
-msgid "Error: Please enter a valid mail-address"
-msgstr ""
-
-#: wp-mail-validator.php:413
-msgid "Error: Timeout while trying to verify your mail-address"
-msgstr ""
-
-#: wp-mail-validator.php:420
-msgid "Error: The mail-server did not accepted the request"
-msgstr ""
-
-#: wp-mail-validator.php:432
-msgid ""
-"Error: Your mail-address syntax is correct, but your mail-server did not "
-"respond in time"
-msgstr ""
-
-#: wp-mail-validator.php:459
-msgid "Protected by"
-msgstr ""
-
-#: wp-mail-validator.php:459
-msgid "spam attacks fended"
 msgstr ""
 
 #. Plugin Name of the plugin/theme

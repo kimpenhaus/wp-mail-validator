@@ -3,7 +3,7 @@
 Plugin Name: WP-Mail-Validator
 Plugin URI: https://github.com/kimpenhaus/wp-mail-validator
 Description: WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in 5 ways: 1. syntax 2. host 3. mx-record of mailserver 4. refuse from user-defined blacklist 5. refuse trashmail services
-Version: 0.5.2
+Version: 0.6
 Author: Marcus Kimpenhaus
 Author URI: https://github.com/kimpenhaus/
 Text Domain: wp-mail-validator
@@ -77,6 +77,203 @@ if (empty($wp_mail_validator_options['check_registrations'])) {
 
 // <-- os detection -->
 $is_windows = strncasecmp(PHP_OS, 'WIN', 3) == 0 ? true : false;
+
+// get windows compatibility
+if (! function_exists('getmxrr')) {
+    function getmxrr($hostName, &$mxHosts, &$mxPreference)
+    {
+        global $wp_mail_validator_options;
+        
+        $gateway = $wp_mail_validator_options['default_gateway'];
+    
+        $nsLookup = shell_exec("nslookup -q=mx {$hostName} {$gateway} 2>nul");
+        preg_match_all("'^.*MX preference = (\d{1,10}), mail exchanger = (.*)$'simU", $nsLookup, $mxMatches);
+
+        if (count($mxMatches[2]) > 0) {
+            array_multisort($mxMatches[1], $mxMatches[2]);
+
+            for ($i = 0; $i < count($mxMatches[2]); $i++) {
+                $mxHosts[$i] = $mxMatches[2][$i];
+                $mxPreference[$i] = $mxMatches[1][$i];
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+// <-- plugin functionality -->
+
+function wp_mail_validator_init() {
+    add_filter('pre_comment_approved', 'wp_mail_validator_validate_comment_mail', 99, 2);
+    add_filter('registration_errors', 'wp_mail_validator_validate_registration_mail', 99, 3);
+
+    if (is_admin()) {
+        add_action('admin_menu', 'wp_mail_validator_add_options_page');
+        add_action('admin_enqueue_scripts', 'wp_mail_validator_enque_scripts');
+    }
+}
+
+function wp_mail_validator_validate_comment_mail($approved, $comment_data)
+{
+    // if comment is already marked as spam or trash
+    // no further investigation is done
+    if ($approved === 'spam' || $approved === 'trash') {
+        return $approved;
+    }
+
+    global $user_ID;
+    global $text_domain;
+    global $wp_mail_validator_options;
+    
+    // currently it is not possible to check trackbacks / pingbacks while there
+    // is no 'comment_author_email' given in the trackback values
+    
+    // check if trackbacks should be left or dropped out
+    if ((isset($comment_data['comment_type'])) && ($comment_data['comment_type'] == 'trackback')) {
+        if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') {
+            return $approved;
+        } else {
+            return 'trash';
+        }
+    }
+    
+    // check if pingbacks should be left or dropped out
+    if ((isset($comment_data['comment_type'])) && ($comment_data['comment_type'] == 'pingback')) {
+        if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') {
+            return $approved;
+        } else {
+            return 'trash';
+        }
+    }
+    
+    // if it's a comment and not a logged in user - check mail
+    if ((get_option('require_name_email')) && (!$user_ID)) {
+        $mail_address = $comment_data['comment_author_email'];
+        return wp_mail_validator_validate_mail_address($approved, $mail_address);
+    }
+
+    return $approved;
+}
+
+function wp_mail_validator_validate_registration_mail($errors, $sanitized_user_login, $user_email)
+{
+    global $text_domain;
+    global $wp_mail_validator_options;
+
+    if ($wp_mail_validator_options['check_registrations'] == 'yes') {
+        $approved = wp_mail_validator_validate_mail_address('', $user_email);
+
+        if ($approved === 'spam') {
+            $errors->add('wp_mail-validator-registration-error', __( '<strong>ERROR</strong>: Your mail-address is evaluated as spam.', $text_domain));
+        }
+    }
+
+    return $errors;
+}
+
+function wp_mail_validator_validate_mail_address($approved, $mail_address)
+{
+    global $wp_mail_validator_options;
+    global $text_domain;
+
+    // check mail-address against user defined blacklist (if enabled)
+    if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'yes') {
+        $regexps = preg_split('/[\r\n]+/', $wp_mail_validator_options['user_defined_blacklist'], -1, PREG_SPLIT_NO_EMPTY);
+        
+        foreach ($regexps as $regexp) {
+            if (preg_match('/' . $regexp . '/', $mail_address)) {
+                wp_mail_validator_fend_it();
+                return 'spam';
+            }
+        }
+    }
+
+    // check mail-address against trashmail services (if enabled)
+    if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'yes') {
+        $regexps = preg_split('/[\r\n]+/', $wp_mail_validator_options['trashmail_service_blacklist'], -1, PREG_SPLIT_NO_EMPTY);
+        
+        foreach ($regexps as $regexp) {
+            if (preg_match('/' . $regexp . '/', $mail_address)) {
+                wp_mail_validator_fend_it();
+                return 'spam';
+            }
+        }
+    }
+
+    $mail_validator = new EMailValidator();
+    $return_code = $mail_validator->validateEMailAddress($mail_address);
+
+    switch ($return_code) {
+        case UNKNOWN_SERVER:
+        case INVALID_MAIL:
+        case SYNTAX_INCORRECT:
+            wp_mail_validator_fend_it();
+            return 'spam';
+        case CONNECTION_FAILED:
+            // timeout while connecting to mail-server
+            if ($wp_mail_validator_options['ignore_failed_connection'] == 'no') {
+                wp_mail_validator_fend_it();
+                return 'spam';
+            }
+            return $approved;
+        case REQUEST_REJECTED:
+            // host could be identified - but he rejected any request
+            if ($wp_mail_validator_options['ignore_request_rejected'] == 'no') {
+                wp_mail_validator_fend_it();
+                return 'spam';
+            }
+            return $approved;
+        case VALID_MAIL:
+            // host could be identified and he accepted and he approved
+            // the mail address
+            return $approved;
+        case SYNTAX_CORRECT:
+            // mail address syntax correct - but the host server
+            // did not repsonse in time
+            if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] != 'yes') {
+                wp_mail_validator_fend_it();
+                return 'spam';
+            }
+            return $approved;
+        default:
+            return $approved;
+    }
+}
+
+// <-- database update function -->
+
+function wp_mail_validator_fend_it()
+{
+    global $wp_mail_validator_options;
+
+    $wp_mail_validator_options['eaten_spam'] = ($wp_mail_validator_options['eaten_spam'] + 1);
+    update_option('wp_mail_validator_options', $wp_mail_validator_options);
+}
+
+// <-- theme functions / statistics -->
+
+function wp_mail_validator_info_label($string_before = "", $string_after = "")
+{
+    global $text_domain;
+
+    $label = $string_before . __('Protected by', $text_domain) . ': <a href="https://github.com/kimpenhaus/wp-mail-validator" title="WP-Mail-Validator" target="_blank">WP-Mail-Validator</a> - <strong>%s</strong> ' . __('spam attacks fended', $text_domain) . '!' . $string_after;
+    return sprintf($label, wp_mail_validator_fended_spam_attack_count());
+}
+
+function wp_mail_validator_fended_spam_attack_count()
+{
+    global $wp_mail_validator_options;
+    return $wp_mail_validator_options['eaten_spam'];
+}
+
+function wp_mail_validator_version()
+{
+    $plugin = get_plugin_data( __FILE__ );
+    return $plugin['Version'];
+}
 
 // <-- admin menu option page -->
 
@@ -281,200 +478,17 @@ function wp_mail_validator_options_page()
     ';
 }
 
-add_action('admin_menu', 'wp_mail_validator_add_options_page');
-
-// <-- plugin functionality -->
-
-// get windows compatibility
-if (! function_exists('getmxrr')) {
-    function getmxrr($hostName, &$mxHosts, &$mxPreference)
-    {
-        global $wp_mail_validator_options;
-        
-        $gateway = $wp_mail_validator_options['default_gateway'];
-    
-        $nsLookup = shell_exec("nslookup -q=mx {$hostName} {$gateway} 2>nul");
-        preg_match_all("'^.*MX preference = (\d{1,10}), mail exchanger = (.*)$'simU", $nsLookup, $mxMatches);
-
-        if (count($mxMatches[2]) > 0) {
-            array_multisort($mxMatches[1], $mxMatches[2]);
-
-            for ($i = 0; $i < count($mxMatches[2]); $i++) {
-                $mxHosts[$i] = $mxMatches[2][$i];
-                $mxPreference[$i] = $mxMatches[1][$i];
-            }
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
-
-function wp_mail_validator_validate_comment_mail($comment_data)
+function wp_mail_validator_enque_scripts($hook)
 {
-    global $user_ID;
-    global $text_domain;
-    global $wp_mail_validator_options;
-    
-    // currently it is not possible to check trackbacks / pingbacks while there
-    // is no 'comment_author_email' given in the trackback values
-    
-    // check if trackbacks should be left or dropped out
-    if ((isset($comment_data['comment_type'])) && ($comment_data['comment_type'] == 'trackback')) {
-        if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') {
-            return $comment_data;
-        } else {
-            wp_die(__('Error: No Trackbacks are allowed', $text_domain));
-        }
-    }
-    
-    // check if pingbacks should be left or dropped out
-    if ((isset($comment_data['comment_type'])) && ($comment_data['comment_type'] == 'pingback')) {
-        if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') {
-            return $comment_data;
-        } else {
-            wp_die(__('Error: No Pingbacks are allowed', $text_domain));
-        }
-    }
-    
-    // if it's a comment and not a logged in user - check mail
-    if ((get_option('require_name_email')) && (!$user_ID)) {
-        $mail_address = $comment_data['comment_author_email'];
-        wp_mail_validator_validate_mail_address($mail_address);
+    if ('settings_page_wp-mail-validator' != $hook) {
+        return;
     }
 
-    return $comment_data;
+    wp_enqueue_script('jquery.mask', plugin_dir_url(__FILE__) . 'scripts/jquery.mask.min.js', array(), '1.14.15');
+    wp_enqueue_script('wp.mail.validator', plugin_dir_url(__FILE__) . 'scripts/wp.mail.validator.min.js', array(), '1.0.0');
 }
 
-function wp_mail_validator_validate_registration_mail($mail_address)
-{
-    global $wp_mail_validator_options;
-
-    if ($wp_mail_validator_options['check_registrations'] == 'yes') {
-        wp_mail_validator_validate_mail_address($mail_address);
-    }
-}
-
-function wp_mail_validator_validate_mail_address($mail_address)
-{
-    global $wp_mail_validator_options;
-    global $text_domain;
-
-    // check mail-address against user defined blacklist (if enabled)
-    if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'yes') {
-        $regexps = preg_split('/[\r\n]+/', $wp_mail_validator_options['user_defined_blacklist'], -1, PREG_SPLIT_NO_EMPTY);
-        
-        foreach ($regexps as $regexp) {
-            if (preg_match('/' . $regexp . '/', $mail_address)) {
-                wp_mail_validator_eat_it();
-                wp_die(__('Error: Your mail-address was blacklisted', $text_domain));
-            }
-        }
-    }
-
-    // check mail-address against trashmail services (if enabled)
-    if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'yes') {
-        $regexps = preg_split('/[\r\n]+/', $wp_mail_validator_options['trashmail_service_blacklist'], -1, PREG_SPLIT_NO_EMPTY);
-        
-        foreach ($regexps as $regexp) {
-            if (preg_match('/' . $regexp . '/', $mail_address)) {
-                wp_mail_validator_eat_it();
-                wp_die(__('Error: Trashmail services are not allowed', $text_domain));
-            }
-        }
-    }
-
-    $mail_validator = new EMailValidator();
-    $return_code = $mail_validator->validateEMailAddress($mail_address);
-
-    switch ($return_code) {
-        case INVALID_MAIL:
-            // host could be identified - but mail address does not
-            // belong to this server
-            wp_mail_validator_eat_it();
-            wp_die(__('Error: This mail-address is not registered with the given mail-server', $text_domain));
-            break;
-        case UNKNOWN_SERVER:
-            // host could not be identified
-            wp_mail_validator_eat_it();
-            wp_die(__('Error: Please enter a valid mail-server host', $text_domain));
-            break;
-        case SYNTAX_INCORRECT:
-            // mail address syntax incorrect
-            // obsolete - checked by wordpress with 'is_email'
-            wp_mail_validator_eat_it();
-            wp_die(__('Error: Please enter a valid mail-address', $text_domain));
-            break;
-        case CONNECTION_FAILED:
-            // timeout while connecting to mail-server
-            if ($wp_mail_validator_options['ignore_failed_connection'] == 'no') {
-                wp_mail_validator_eat_it();
-                wp_die(__('Error: Timeout while trying to verify your mail-address', $text_domain));
-            }
-            break;
-        case REQUEST_REJECTED:
-            // host could be identified - but he rejected any request
-            if ($wp_mail_validator_options['ignore_request_rejected'] == 'no') {
-                wp_mail_validator_eat_it();
-                wp_die(__('Error: The mail-server did not accepted the request', $text_domain));
-            }
-            break;
-        case VALID_MAIL:
-            // host could be identified and he accepted and he approved
-            // the mail address
-            break;
-        case SYNTAX_CORRECT:
-            // mail address syntax correct - but the host server
-            // did not repsonse in time
-            if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] != 'yes') {
-                wp_mail_validator_eat_it();
-                wp_die(__('Error: Your mail-address syntax is correct, but your mail-server did not respond in time', $text_domain));
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-add_filter('preprocess_comment', 'wp_mail_validator_validate_comment_mail');
-add_filter('user_registration_email', 'wp_mail_validator_validate_registration_mail');
-
-// <-- database update function -->
-
-function wp_mail_validator_eat_it()
-{
-    global $wp_mail_validator_options;
-
-    $wp_mail_validator_options['eaten_spam'] = ($wp_mail_validator_options['eaten_spam'] + 1);
-    update_option('wp_mail_validator_options', $wp_mail_validator_options);
-}
-
-// <-- theme functions / statistics -->
-
-function wp_mail_validator_info_label($string_before = "", $string_after = "")
-{
-    global $text_domain;
-
-    $label = $string_before . __('Protected by', $text_domain) . ': <a href="https://github.com/kimpenhaus/wp-mail-validator" title="WP-Mail-Validator" target="_blank">WP-Mail-Validator v%s</a> - <strong>%s</strong> ' . __('spam attacks fended', $text_domain) . '!' . $string_after;
-    return sprintf($label, wp_mail_validator_version(), wp_mail_validator_fended_spam_attack_count());
-}
-
-function wp_mail_validator_fended_spam_attack_count()
-{
-    global $wp_mail_validator_options;
-    return $wp_mail_validator_options['eaten_spam'];
-}
-
-function wp_mail_validator_version()
-{
-    $plugins = get_plugins();
-    $version = $plugins[get_relative_plugin_path()]['Version'];
-
-    return $version;
-}
-
-// <-- Plugin installation on activation -->
+// <-- plugin installation on activation -->
 
 function wp_mail_validator_install()
 {
@@ -496,22 +510,7 @@ function wp_mail_validator_install()
     }
 }
 
-function wp_mail_validator_enque_scripts($hook)
-{
-    if ('settings_page_wp-mail-validator' != $hook) {
-        return;
-    }
-
-    global $is_windows;
-
-    wp_enqueue_script('jquery.mask', plugin_dir_url(__FILE__) . 'scripts/jquery.mask.min.js', array(), '1.14.15');
-    wp_enqueue_script('wp.mail.validator', plugin_dir_url(__FILE__) . 'scripts/wp.mail.validator.min.js', array(), '1.0.0');
-}
-
-function get_relative_plugin_path()
-{
-    return substr_replace(__FILE__, "", 0, strlen(ABSPATH . "wp-content/plugins/"));
-}
-
-add_action('activate_' . get_relative_plugin_path(), 'wp_mail_validator_install');
-add_action('admin_enqueue_scripts', 'wp_mail_validator_enque_scripts');
+// <-- hooks -->
+register_activation_hook( __FILE__, 'wp_mail_validator_install');
+add_action( 'init', 'wp_mail_validator_init' );
+?>

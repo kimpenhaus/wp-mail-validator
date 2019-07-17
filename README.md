@@ -1,9 +1,9 @@
 === WP-Mail-Validator ===
 
 Contributors: kimpenhaus
-Tags: comments, registrations, spam, anti-spam, mail, email, validation, check, security, blacklist, mx-record, trashmail
-Stable tag: 0.5.2
-Tested up to: 5.2.1
+Tags: comments, anti-spam, security, blacklist, trashmail, mx-record, mail, email, validation, check, registrations, spam
+Stable tag: 0.6
+Tested up to: 5.2.2
 Requires at least: 5.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,6 +17,9 @@ WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in
 3. mx-record of mailserver
 4. user-defined blacklist
 5. trashmail services
+
+Once the plugin identifies a mail-address to be non existing on the mailserver or being on the blacklist or
+from trashmail service, any comment being made is moved to the spam area awaiting moderation from the blog owner.
 
 == Installation ==
 
@@ -32,6 +35,9 @@ WP-Mail-Validator comes with 3 theme functions that can be used:
 3. `wp_mail_validator_fended_spam_attack_count()`: shows the count of spam attackes fended
 
 == Changelog ==
+
+= 0.6.0 =
+* changed behaviour to move comments to spam moderation rather then deny posting
 
 = 0.5.2 =
 * fixed misspelling
