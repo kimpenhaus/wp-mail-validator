@@ -2,8 +2,8 @@
 
 Contributors: kimpenhaus
 Tags: comments, anti-spam, security, blacklist, trashmail, mx-record, mail, email, validation, check, registrations, spam
-Stable tag: 0.6
-Tested up to: 5.2.2
+Stable tag: 0.6.1
+Tested up to: 5.2.3
 Requires at least: 5.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -35,6 +35,10 @@ WP-Mail-Validator comes with 3 theme functions that can be used:
 3. `wp_mail_validator_fended_spam_attack_count()`: shows the count of spam attackes fended
 
 == Changelog ==
+
+= 0.6.1 =
+* added line count to blacklist and trashmail service
+* added WP 5.2.3 as tested version
 
 = 0.6.0 =
 * changed behaviour to move comments to spam moderation rather then deny posting

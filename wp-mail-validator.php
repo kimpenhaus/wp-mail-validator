@@ -7,14 +7,13 @@ Version: 0.6
 Author: Marcus Kimpenhaus
 Author URI: https://github.com/kimpenhaus/
 Text Domain: wp-mail-validator
-Domain Path: /languages
 */
 
 require_once('email-validator.inc.php');
 
 // <-- i18n textdomain -->
 $text_domain = 'wp-mail-validator';
-load_plugin_textdomain($text_domain, false, plugin_dir_url(__FILE__) . '/languages/');
+load_plugin_textdomain($text_domain);
 
 // <-- trash mail service blacklist -->
 $trashmail_service_blacklist_file = plugin_dir_url(__FILE__) . '/data/trash.mail.service.blacklist';
@@ -307,120 +306,90 @@ function wp_mail_validator_options_page()
 
         update_option('wp_mail_validator_options', $wp_mail_validator_updated_options);
         $wp_mail_validator_options = get_option('wp_mail_validator_options');
-        echo '<div id="setting-error-settings_updated" class="updated settings-error notice is-dismissible"> 
-        <p><strong>' . $update_notice . '.</strong></p><button type="button" class="notice-dismiss"><span class="screen-reader-text">' . __('Dismiss this notice', $text_domain) . '.</span></button></div>';
+    ?>
+        <div id="setting-error-settings_updated" class="updated settings-error notice is-dismissible"> 
+            <p>
+                <strong><?php echo $update_notice ?>.</strong>
+            </p>
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text"><?php echo __('Dismiss this notice', $text_domain) ?>.</span>
+            </button>
+        </div>';
+    <?php
     }
-
-    echo '
-	<div class="wrap">
-	<h1>' . __('Settings', $text_domain) . '</h1>
-	<form name="wp_mail_validator_options" method="post">
-	<input type="hidden" name="wp_mail_validator_options_update_type" value="update" />
-    <table width="100%" cellspacing="2" cellpadding="5" class="form-table">';
+    ?>
+        <div class="wrap">
+            <h1><?php echo __('Settings', $text_domain) ?></h1>
+            <form name="wp_mail_validator_options" method="post">
+                <input type="hidden" name="wp_mail_validator_options_update_type" value="update" />
+                <h2><?php echo __('Comment validation', $text_domain) ?></h2>
+                <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
+    <?php
     if ($is_windows) {
-        echo '<tr>
-				<th scope="row">' . __('Default-gateway IP', $text_domain) . ':</th>
-				<td>
-	            <input name="default_gateway" type="text" id="default_gateway" value="' . $wp_mail_validator_options['default_gateway'] . '" maxlength="15" size="40" /><br />' . __('Leave blank to use the default gateway', $text_domain) . '.
-	            </td>
-            </tr>';
+    ?>
+                    <tr>
+                        <th scope="row"><?php echo__('Default-gateway IP', $text_domain) ?>:</th>
+                        <td>
+                            <input name="default_gateway" type="text" id="default_gateway" value="<?php echo $wp_mail_validator_options['default_gateway'] ?>" maxlength="15" size="40" />
+                            <br /><?php echo __('Leave blank to use the default gateway', $text_domain) ?>.
+                        </td>
+                    </tr>
+    <?php
     }
-
-    echo '
-			<tr>
-				<th scope="row">' . __('Validate Registrations', $text_domain) . ':</th>
-				<td>
-				<label><input name="check_registrations" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['check_registrations'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="check_registrations" type="radio" value="no" ';
-    if ($wp_mail_validator_options['check_registrations'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to validate registrants mail-address', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Accept Pingbacks', $text_domain) . ':</th>
-				<td>
-				<label><input name="accept_pingbacks" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="accept_pingbacks" type="radio" value="no" ';
-    if ($wp_mail_validator_options['accept_pingbacks'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Accept Trackbacks', $text_domain) . ':</th>
-				<td>
-				<label><input name="accept_trackbacks" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="accept_trackbacks" type="radio" value="no" ';
-    if ($wp_mail_validator_options['accept_trackbacks'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Ignore connection failures', $text_domain) . ':</th>
-				<td>
-				<label><input name="ignore_failed_connection" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['ignore_failed_connection'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="ignore_failed_connection" type="radio" value="no" ';
-    if ($wp_mail_validator_options['ignore_failed_connection'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to ignore connection failures with mail servers while validating mail-addresses', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Ignore rejected requests', $text_domain) . ':</th>
-				<td>
-				<label><input name="ignore_request_rejected" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['ignore_request_rejected'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="ignore_request_rejected" type="radio" value="no" ';
-    if ($wp_mail_validator_options['ignore_request_rejected'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to ignore rejected request from mail servers while validating mail-addresses', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Accept syntactically correct mail-addresses', $text_domain) . ':</th>
-				<td>
-				<label><input name="accept_correct_syntax_on_server_timeout" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="accept_correct_syntax_on_server_timeout" type="radio" value="no" ';
-    if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose if syntactically correct mail-addresses can pass when the mail server did not respond in time', $text_domain) . '.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">' . __('Reject mail-adresses from trashmail services', $text_domain) . ':</th>
-				<td>
-				<label><input name="use_trashmail_service_blacklist" type="radio" value="yes" ';
+    ?>
+                    <tr>
+                        <th scope="row"><?php echo __('Accept on connection failures', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="ignore_failed_connection" type="radio" value="yes" <?php if ($wp_mail_validator_options['ignore_failed_connection'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="ignore_failed_connection" type="radio" value="no"<?php if ($wp_mail_validator_options['ignore_failed_connection'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to ignore connection failures with mail servers while validating mail-addresses', $text_domain) ?>.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo __('Accept on rejected requests', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="ignore_request_rejected" type="radio" value="yes" <?php if ($wp_mail_validator_options['ignore_request_rejected'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="ignore_request_rejected" type="radio" value="no" <?php if ($wp_mail_validator_options['ignore_request_rejected'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to ignore rejected request from mail servers while validating mail-addresses', $text_domain) ?>.
+                            </p>
+                       </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo __('Accept syntactically correct mail-addresses', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="accept_correct_syntax_on_server_timeout" type="radio" value="yes" <?php if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="accept_correct_syntax_on_server_timeout" type="radio" value="no" <?php if ($wp_mail_validator_options['accept_correct_syntax_on_server_timeout'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose if syntactically correct mail-addresses can pass when the mail server did not respond in time', $text_domain) ?>.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo __('Reject mail-adresses from trashmail services', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="use_trashmail_service_blacklist" type="radio" value="yes" <?php
     if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'yes') {
         echo 'checked="checked" ';
     }
@@ -430,13 +399,14 @@ function wp_mail_validator_options_page()
         echo 'checked="checked" ';
     }
     echo ' /> ' . __('No', $text_domain) . '</label>
-				</td>
-			</tr>
+    <p class="description">' . __('Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', $text_domain) . '.</p>
+                </td>
+            </tr>
             <tr>
 				<th scope="row">&nbsp;</th>
 				<td>
-                <label><textarea name="trashmail_service_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['trashmail_service_blacklist'] . '</textarea></label>
-                <p class="description">' . __('Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', $text_domain) . '.</p>
+                <label><textarea id="trashmail_service_blacklist" name="trashmail_service_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['trashmail_service_blacklist'] . '</textarea></label>
+                <p class="description"><span id="trashmail_service_blacklist_line_count">0</span> ' . __('Entries', $text_domain) . '</p>
                 <p class="submit"><input class="button button-primary" type="submit" id="trashmail_service_blacklist_restore" name="submit" value="' . __('Restore default blacklist', $text_domain) . '" /></p>
 				</td>
             </tr>
@@ -453,16 +423,69 @@ function wp_mail_validator_options_page()
         echo 'checked="checked" ';
     }
     echo ' /> ' . __('No', $text_domain) . '</label>
-				</td>
+                <p class="description">' . __('Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', $text_domain) . '.</p>
+                </td>
 			</tr>
             <tr>
 				<th scope="row">&nbsp;</th>
 				<td>
-                <label><textarea name="user_defined_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['user_defined_blacklist'] . '</textarea></label>
-                <p class="description">' . __('Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', $text_domain) . '.</p>
+                <label><textarea id="user_defined_blacklist" name="user_defined_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['user_defined_blacklist'] . '</textarea></label>
+                <p class="description"><span id="user_defined_blacklist_line_count">0</span> ' . __('Entries', $text_domain) . '</p>
 				</td>
             </tr>
-		</table> 
+        </table>
+        <h2>' . __('Ping validation', $text_domain) . '</h2>
+        <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
+        <tr>
+            <th scope="row">' . __('Validate pingbacks', $text_domain) . ':</th>
+            <td>
+            <label><input name="accept_pingbacks" type="radio" value="yes" ';
+if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') {
+    echo 'checked="checked" ';
+}
+echo '/> ' . __('Yes', $text_domain) . '</label>
+            <label><input name="accept_pingbacks" type="radio" value="no" ';
+if ($wp_mail_validator_options['accept_pingbacks'] == 'no') {
+    echo 'checked="checked" ';
+}
+echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">' . __('Validate trackbacks', $text_domain) . ':</th>
+            <td>
+            <label><input name="accept_trackbacks" type="radio" value="yes" ';
+if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') {
+    echo 'checked="checked" ';
+}
+echo '/> ' . __('Yes', $text_domain) . '</label>
+            <label><input name="accept_trackbacks" type="radio" value="no" ';
+if ($wp_mail_validator_options['accept_trackbacks'] == 'no') {
+    echo 'checked="checked" ';
+}
+echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
+            </td>
+        </tr>
+        </table>'; 
+
+        echo '<h2>' . __('Registrants validation', $text_domain) . '</h2>
+        <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
+        <tr>
+            <th scope="row">' . __('Validate user-registrations', $text_domain) . ':</th>
+            <td>
+            <label><input name="check_registrations" type="radio" value="yes" ';
+if ($wp_mail_validator_options['check_registrations'] == 'yes') {
+    echo 'checked="checked" ';
+}
+echo '/> ' . __('Yes', $text_domain) . '</label>
+            <label><input name="check_registrations" type="radio" value="no" ';
+if ($wp_mail_validator_options['check_registrations'] == 'no') {
+    echo 'checked="checked" ';
+}
+echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to validate registrants mail-address', $text_domain) . '.</p>
+            </td>
+        </tr>
+        </table>
 	<p class="submit"><input class="button button-primary" type="submit" id="options_update" name="submit" value="' . __('Save Changes', $text_domain) . '" /></p>
     </form>
     </div>
