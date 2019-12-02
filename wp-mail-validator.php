@@ -3,7 +3,7 @@
 Plugin Name: WP-Mail-Validator
 Plugin URI: https://github.com/kimpenhaus/wp-mail-validator
 Description: WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in 5 ways: 1. syntax 2. host 3. mx-record of mailserver 4. refuse from user-defined blacklist 5. refuse trashmail services
-Version: 0.6.2
+Version: 0.6.3
 Author: Marcus Kimpenhaus
 Author URI: https://github.com/kimpenhaus/
 Text Domain: wp-mail-validator
@@ -314,7 +314,7 @@ function wp_mail_validator_options_page()
             <button type="button" class="notice-dismiss">
                 <span class="screen-reader-text"><?php echo __('Dismiss this notice', $text_domain) ?>.</span>
             </button>
-        </div>';
+        </div>
     <?php
     }
     ?>
@@ -389,116 +389,135 @@ function wp_mail_validator_options_page()
                         <th scope="row"><?php echo __('Reject mail-adresses from trashmail services', $text_domain) ?>:</th>
                         <td>
                             <label>
-                                <input name="use_trashmail_service_blacklist" type="radio" value="yes" <?php
-    if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="use_trashmail_service_blacklist" type="radio" value="no" ';
-    if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label>
-    <p class="description">' . __('Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', $text_domain) . '.</p>
-                </td>
-            </tr>
-            <tr>
-				<th scope="row">&nbsp;</th>
-				<td>
-                <label><textarea id="trashmail_service_blacklist" name="trashmail_service_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['trashmail_service_blacklist'] . '</textarea></label>
-                <p class="description"><span id="trashmail_service_blacklist_line_count">0</span> ' . __('Entries', $text_domain) . '</p>
-                <p class="submit"><input class="button button-primary" type="submit" id="trashmail_service_blacklist_restore" name="submit" value="' . __('Restore default blacklist', $text_domain) . '" /></p>
-				</td>
-            </tr>
-			<tr>
-				<th scope="row">' . __('Reject mail-adresses from user-defined blacklist', $text_domain) . ':</th>
-				<td>
-				<label><input name="use_user_defined_blacklist" type="radio" value="yes" ';
-    if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'yes') {
-        echo 'checked="checked" ';
-    }
-    echo '/> ' . __('Yes', $text_domain) . '</label>
-				<label><input name="use_user_defined_blacklist" type="radio" value="no" ';
-    if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'no') {
-        echo 'checked="checked" ';
-    }
-    echo ' /> ' . __('No', $text_domain) . '</label>
-                <p class="description">' . __('Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', $text_domain) . '.</p>
-                </td>
-			</tr>
-            <tr>
-				<th scope="row">&nbsp;</th>
-				<td>
-                <label><textarea id="user_defined_blacklist" name="user_defined_blacklist" rows="15" cols="40">' . $wp_mail_validator_options['user_defined_blacklist'] . '</textarea></label>
-                <p class="description"><span id="user_defined_blacklist_line_count">0</span> ' . __('Entries', $text_domain) . '</p>
-				</td>
-            </tr>
-        </table>
-        <h2>' . __('Ping validation', $text_domain) . '</h2>
-        <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
-        <tr>
-            <th scope="row">' . __('Validate pingbacks', $text_domain) . ':</th>
-            <td>
-            <label><input name="accept_pingbacks" type="radio" value="yes" ';
-if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') {
-    echo 'checked="checked" ';
-}
-echo '/> ' . __('Yes', $text_domain) . '</label>
-            <label><input name="accept_pingbacks" type="radio" value="no" ';
-if ($wp_mail_validator_options['accept_pingbacks'] == 'no') {
-    echo 'checked="checked" ';
-}
-echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">' . __('Validate trackbacks', $text_domain) . ':</th>
-            <td>
-            <label><input name="accept_trackbacks" type="radio" value="yes" ';
-if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') {
-    echo 'checked="checked" ';
-}
-echo '/> ' . __('Yes', $text_domain) . '</label>
-            <label><input name="accept_trackbacks" type="radio" value="no" ';
-if ($wp_mail_validator_options['accept_trackbacks'] == 'no') {
-    echo 'checked="checked" ';
-}
-echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) . '.</p>
-            </td>
-        </tr>
-        </table>'; 
-
-        echo '<h2>' . __('Registrants validation', $text_domain) . '</h2>
-        <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
-        <tr>
-            <th scope="row">' . __('Validate user-registrations', $text_domain) . ':</th>
-            <td>
-            <label><input name="check_registrations" type="radio" value="yes" ';
-if ($wp_mail_validator_options['check_registrations'] == 'yes') {
-    echo 'checked="checked" ';
-}
-echo '/> ' . __('Yes', $text_domain) . '</label>
-            <label><input name="check_registrations" type="radio" value="no" ';
-if ($wp_mail_validator_options['check_registrations'] == 'no') {
-    echo 'checked="checked" ';
-}
-echo ' /> ' . __('No', $text_domain) . '</label><p class="description">' . __('Choose to validate registrants mail-address', $text_domain) . '.</p>
-            </td>
-        </tr>
-        </table>
-	<p class="submit"><input class="button button-primary" type="submit" id="options_update" name="submit" value="' . __('Save Changes', $text_domain) . '" /></p>
-    </form>
-    </div>
-    <div class="wrap">
-    <h1>' . __('Statistics', $text_domain) . '</h1>
-    <div class="card">
-        <p>' . sprintf(__('Version', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_version()) . '&nbsp;|
-        ' . sprintf(__('Spam attacks fended', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_fended_spam_attack_count()) . '</p>
-        <p><a href="https://github.com/kimpenhaus/wp-mail-validator/wiki">' . __('Documentation', $text_domain) . '</a>&nbsp;|
-        <a href="https://github.com/kimpenhaus/wp-mail-validator/issues">' . __('Issue Tracker', $text_domain) . '</a></p>
-    </div>
-    </div>
-    ';
+                                <input name="use_trashmail_service_blacklist" type="radio" value="yes" <?php if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="use_trashmail_service_blacklist" type="radio" value="no" <?php if ($wp_mail_validator_options['use_trashmail_service_blacklist'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">&nbsp;</th>
+                        <td>
+                            <label>
+                                <textarea id="trashmail_service_blacklist" name="trashmail_service_blacklist" rows="15" cols="40"><?php echo $wp_mail_validator_options['trashmail_service_blacklist'] ?></textarea>
+                            </label>
+                            <p class="description">
+                                <span id="trashmail_service_blacklist_line_count">0</span>
+                                <?php echo __('Entries', $text_domain) ?>
+                            </p>
+                            <p class="submit">
+                                <input class="button button-primary" type="submit" id="trashmail_service_blacklist_restore" name="submit" value="<?php echo __('Restore default blacklist', $text_domain) ?>" />
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo __('Reject mail-adresses from user-defined blacklist', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="use_user_defined_blacklist" type="radio" value="yes" <?php if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="use_user_defined_blacklist" type="radio" value="no" <?php if ($wp_mail_validator_options['use_user_defined_blacklist'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">&nbsp;</th>
+                        <td>
+                            <label>
+                                <textarea id="user_defined_blacklist" name="user_defined_blacklist" rows="15" cols="40"><?php echo $wp_mail_validator_options['user_defined_blacklist'] ?></textarea>
+                            </label>
+                            <p class="description">
+                                <span id="user_defined_blacklist_line_count">0</span>
+                                <?php echo __('Entries', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h2><?php echo __('Ping validation', $text_domain) ?></h2>
+                <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
+                    <tr>
+                        <th scope="row"><?php echo __('Validate pingbacks', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="accept_pingbacks" type="radio" value="yes" <?php if ($wp_mail_validator_options['accept_pingbacks'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="accept_pingbacks" type="radio" value="no" <?php if ($wp_mail_validator_options['accept_pingbacks'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo __('Validate trackbacks', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="accept_trackbacks" type="radio" value="yes" <?php if ($wp_mail_validator_options['accept_trackbacks'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="accept_trackbacks" type="radio" value="no" <?php if ($wp_mail_validator_options['accept_trackbacks'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h2><?php echo __('Registrants validation', $text_domain) ?></h2>
+                <table width="100%" cellspacing="2" cellpadding="5" class="form-table">
+                    <tr>
+                        <th scope="row"><?php echo __('Validate user-registrations', $text_domain) ?>:</th>
+                        <td>
+                            <label>
+                                <input name="check_registrations" type="radio" value="yes" <?php if ($wp_mail_validator_options['check_registrations'] == 'yes') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('Yes', $text_domain) ?>
+                            </label>
+                            <label>
+                                <input name="check_registrations" type="radio" value="no" <?php if ($wp_mail_validator_options['check_registrations'] == 'no') { echo 'checked="checked" '; } ?>/>
+                                <?php echo __('No', $text_domain) ?>
+                            </label>
+                            <p class="description">
+                                <?php echo __('Choose to validate registrants mail-address', $text_domain) ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p class="submit">
+                    <input class="button button-primary" type="submit" id="options_update" name="submit" value="<?php echo __('Save Changes', $text_domain) ?>" />
+                </p>
+            </form>
+        </div>
+        <div class="wrap">
+            <h1><?php echo __('Statistics', $text_domain) ?></h1>
+            <div class="card">
+                <p>
+                    <?php echo sprintf(__('Version', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_version()) ?>&nbsp;|
+                    <?php echo sprintf(__('Spam attacks fended', $text_domain) . ': <strong>%s</strong>', wp_mail_validator_fended_spam_attack_count()) ?>
+                </p>
+                <p>
+                    <a href="https://github.com/kimpenhaus/wp-mail-validator/wiki"><?php echo __('Documentation', $text_domain) ?></a>&nbsp;|
+                    <a href="https://github.com/kimpenhaus/wp-mail-validator/issues"><?php echo __('Issue Tracker', $text_domain) ?></a>
+                </p>
+            </div>
+        </div>
+<?php
 }
 
 function wp_mail_validator_enque_scripts($hook)
