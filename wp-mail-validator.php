@@ -3,7 +3,7 @@
 Plugin Name: WP-Mail-Validator
 Plugin URI: https://github.com/kimpenhaus/wp-mail-validator
 Description: WP-Mail-Validator is an anti-spam plugin. It provides mail-address validation in 5 ways: 1. syntax 2. host 3. mx-record of mailserver 4. refuse from user-defined blacklist 5. refuse trashmail services
-Version: 0.6.3
+Version: 0.6.4
 Author: Marcus Kimpenhaus
 Author URI: https://github.com/kimpenhaus/
 Text Domain: wp-mail-validator
