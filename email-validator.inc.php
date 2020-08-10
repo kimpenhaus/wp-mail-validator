@@ -52,7 +52,7 @@ class EMailValidator
 
 	function checkSyntax( &$strEMailAddress )
 	{
-		return preg_match( "/^[0-9a-z_]([-_\.]*[0-9a-z])*@[0-9a-z]([-\._]*[0-9a-z])*\\.[a-z]{2,3}$/i", $strEMailAddress  ) == 1 ;
+		return preg_match( "/^[0-9a-z_]([-_\.]*[0-9a-z])*\+?[0-9a-z]*([-_\.]*[0-9a-z])*@[0-9a-z]([-\._]*[0-9a-z])*\\.[a-z]{2,24}$/i", $strEMailAddress  ) == 1 ;
 	}
 
 
@@ -67,8 +67,6 @@ class EMailValidator
 	{
 		if ( preg_match( "/^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$/", $strHostName ) )
 			$numHostIP = @gethostbyaddr ( $strHostName ) ;
-		else if ( $this -> countChars( $strHostName, "." ) == 1 )
-			$numHostIP = @gethostbyname ( "www.".$strHostName ) ;
 		else
 			$numHostIP = @gethostbyname ( $strHostName ) ;
 		return strlen( $numHostIP ) > 6 && $numHostIP != $strHostName && $numHostIP != "www." . $strHostName ;
