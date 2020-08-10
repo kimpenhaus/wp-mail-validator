@@ -107,7 +107,8 @@ if (! function_exists('getmxrr')) {
 
 function wp_mail_validator_init() {
     add_filter('pre_comment_approved', 'wp_mail_validator_validate_comment_mail', 99, 2);
-    add_filter('registration_errors', 'wp_mail_validator_validate_registration_mail', 99, 3);
+    add_filter('registration_errors', 'wp_mail_validator_validate_registration_mail', 99, 3
+    add_filter('woocommerce_registration_errors', 'wp_mail_validator_validate_registration_mail', 10, 3);
 
     if (is_admin()) {
         add_action('admin_menu', 'wp_mail_validator_add_options_page');
