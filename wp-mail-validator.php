@@ -108,7 +108,17 @@ if (! function_exists('getmxrr')) {
 function wp_mail_validator_init() {
     add_filter('pre_comment_approved', 'wp_mail_validator_validate_comment_mail', 99, 2);
     add_filter('registration_errors', 'wp_mail_validator_validate_registration_mail', 99, 3);
-    add_filter('woocommerce_registration_errors', 'wp_mail_validator_validate_registration_mail', 10, 3);
+
+    # Filtering for WooCommerce, if it is installed and active
+    if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+        add_filter('woocommerce_registration_errors', 'wp_mail_validator_validate_registration_mail', 10, 3);
+    }
+
+    # Filtering for contact form 7 - this doesn't work well yet tho. So I deactivate it
+    #if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+    #    add_filter('wpcf7_validate_email', 'wp_mail_validator_validate_registration_mail', 20, 2); // Email field
+    #    add_filter('wpcf7_validate_email*', 'wp_mail_validator_validate_registration_mail', 20, 2); // Req. Email field
+    #}
 
     if (is_admin()) {
         add_action('admin_menu', 'wp_mail_validator_add_options_page');
