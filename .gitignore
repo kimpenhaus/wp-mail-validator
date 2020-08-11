@@ -18,3 +18,11 @@ wp-content/plugins/hello.php
 /sitemap.xml.gz
 
 .DS_Store
+
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+
+*.sublime-project
+*.sublime-workspace

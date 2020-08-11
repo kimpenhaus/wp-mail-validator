@@ -1,58 +1,32 @@
 <?php
-/*
-	File-Name:		email-validator.inc.php
-	Author:			nepomuk (hendrik.sgries@get-the-code.de)
-	Description:	class to check, if an email-address exists
-	Date:			   2003
-*/
 
-
-
-/*******************************/
-/*** global static constants ***/
-/*******************************/
-
-	/*** Return-Constants ***/
-
-	define ( "INVALID_MAIL",			-10 ) ;
-	define ( "UNKNOWN_SERVER",			-20 ) ;
+	define ( "INVALID_MAIL",        -10 ) ;
+	define ( "UNKNOWN_SERVER",      -20 ) ;
 	define ( "SYNTAX_INCORRECT",		-30 ) ;
 	define ( "CONNECTION_FAILED",		-40 ) ;
 	define ( "REQUEST_REJECTED",		-50 ) ;
-
-	define ( "VALID_MAIL",				10 ) ;
-	define ( "SYNTAX_CORRECT",			20 ) ;
-
-
-
-
+	define ( "VALID_MAIL",				   10 ) ;
+	define ( "SYNTAX_CORRECT",			 20 ) ;
 
 
 class EMailValidator
 {
 
-
 	function validateEMailAddress( $strEMailAddress )
 	{
 		$strEMailAddress = trim( $strEMailAddress ) ;
-
 		if( !$this -> checkSyntax( $strEMailAddress ) )
 			return SYNTAX_INCORRECT ;
-
 		$strHostName = $this -> extractHostName( $strEMailAddress ) ;
-
 		if( !$this -> checkHostName( $strHostName ) )
 			return UNKNOWN_SERVER ;
-
 		return $this -> checkEMailAddress( $strHostName, $strEMailAddress ) ;
 	}
 
 
-
-
 	function checkSyntax( &$strEMailAddress )
 	{
-		return preg_match( "/^[0-9a-z_]([-_\.]*[0-9a-z])*@[0-9a-z]([-\._]*[0-9a-z])*\\.[a-z]{2,3}$/i", $strEMailAddress  ) == 1 ;
+		return preg_match( "/^[0-9a-z_]([-_\.]*[0-9a-z])*\+?[0-9a-z]*([-_\.]*[0-9a-z])*@[0-9a-z]([-\._]*[0-9a-z])*\\.[a-z]{2,24}$/i", $strEMailAddress  ) == 1 ;
 	}
 
 
@@ -65,13 +39,19 @@ class EMailValidator
 
 	function checkHostName( &$strHostName )
 	{
+		# If we only have an IP-address, we check if it resolves into a DNS name
 		if ( preg_match( "/^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$/", $strHostName ) )
-			$numHostIP = @gethostbyaddr ( $strHostName ) ;
-		else if ( $this -> countChars( $strHostName, "." ) == 1 )
-			$numHostIP = @gethostbyname ( "www.".$strHostName ) ;
-		else
-			$numHostIP = @gethostbyname ( $strHostName ) ;
-		return strlen( $numHostIP ) > 6 && $numHostIP != $strHostName && $numHostIP != "www." . $strHostName ;
+			$strHostName = @gethostbyaddr ( $strHostName ) ;
+
+		# now we get the host IP address to the passed (or resolved) hostname
+		$numHostIP = @gethostbyname ( $strHostName ) ;
+
+		# only if it truly resolved into an IP address, we can return true
+		if ( preg_match( "/^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$/", $numHostIP ) )
+			return true;
+
+		# in this case we couldn't resolve an IP address
+		return false;
 	}
 
 
@@ -88,9 +68,7 @@ class EMailValidator
 	}
 
 
-
-	function checkEMailAddress( $strHostName,
-								$strEMailAddress )
+	function checkEMailAddress( $strHostName, $strEMailAddress )
 	{
 		$arrMXHosts = $this -> getMailExchanger( $strHostName ) ;
 
@@ -119,11 +97,9 @@ class EMailValidator
 	}
 
 
-
 	/*** Ask the smtp-server, if given email-address exists ***/
 
-	function sendMailRequest( $fpMailServer,
-							  $strMailRecipient )
+	function sendMailRequest( $fpMailServer, $strMailRecipient )
 	{
 		$SERVER_NAME = getenv( "SERVER_NAME" ) ;
 
@@ -184,10 +160,9 @@ class EMailValidator
 	}
 
 
-
 	// Opens a socket-connection to smtp-mail-service
 	// try max. 5 times, if connection failed, return CONNECTION_FAILED
-
+	// 
 	function connectToMailServer( $strMXHost )
 	{
 		for ( $i = 0; $i < 5; $i++ )
@@ -209,8 +184,7 @@ class EMailValidator
 
 
 	// Closes an open socket-connection
-	function closeConnection( $fpConnection,
-							  $bStarted = TRUE )
+	function closeConnection( $fpConnection, $bStarted = TRUE )
 	{
 		if( $bStarted )
 			@fwrite ( $fpConnection, "QUIT\n" ) ;
@@ -218,13 +192,11 @@ class EMailValidator
 	}
 
 
-
 	// a simple bubble-sort-implementation
 	// sorts first the key-array in ascending order
 	// and then the array given with the first parameter
 	// in the order of the key-array
-	function sortByKey( &$objArray,
-						&$arrKey )
+	function sortByKey( &$objArray, &$arrKey )
 	{
 		$numEnd = sizeof( $objArray ) -1 ;
 		$numEnd = sizeof( $objArray ) -1 ;
@@ -246,11 +218,9 @@ class EMailValidator
 	}
 
 
-
 	// counts the number of occurances of a given char
 	// in a given string
-	function countChars( &$strString,
-						 $charSeparator )
+	function countChars( &$strString, $charSeparator )
 	{
 		$arrSplit = explode( $charSeparator, $strString ) ;
 		return sizeof( $arrSplit ) - 1 ;
