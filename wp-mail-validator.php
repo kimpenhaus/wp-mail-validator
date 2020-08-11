@@ -115,10 +115,10 @@ function wp_mail_validator_init() {
     }
 
     # Filtering for contact form 7 - this doesn't work well yet tho. So I deactivate it
-    #if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
-    #    add_filter('wpcf7_validate_email', 'wp_mail_validator_validate_registration_mail', 20, 2); // Email field
-    #    add_filter('wpcf7_validate_email*', 'wp_mail_validator_validate_registration_mail', 20, 2); // Req. Email field
-    #}
+    if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
+       add_filter('wpcf7_validate_email', 'wp_mail_validator_cf7_validate_mail_address', 20, 2); // Email field
+       add_filter('wpcf7_validate_email*', 'wp_mail_validator_cf7_validate_mail_address', 20, 2); // Req. Email field
+    }
 
     if (is_admin()) {
         add_action('admin_menu', 'wp_mail_validator_add_options_page');
@@ -177,12 +177,32 @@ function wp_mail_validator_validate_registration_mail($errors, $sanitized_user_l
         $approved = wp_mail_validator_validate_mail_address('', $user_email);
 
         if ($approved === 'spam') {
-            $errors->add('wp_mail-validator-registration-error', __( '<strong>ERROR</strong>: Your mail-address is evaluated as spam.', $text_domain));
+            $errors->add('wp_mail-validator-registration-error', __( 'Your mail-address is evaluated as spam.', $text_domain));
         }
     }
 
     return $errors;
 }
+
+function wp_mail_validator_cf7_validate_mail_address($result, $tags) {
+            
+    $tags = new WPCF7_FormTag( $tags );
+
+    $type = $tags->type;
+    $name = $tags->name;
+
+    if ('email' == $type || 'email*' == $type) { // Only apply to fields with the form field name of "company-email"
+      
+        $user_email = sanitize_email($_POST[$name]);
+        $approved = wp_mail_validator_validate_mail_address('', $user_email);
+      
+        if ($approved === 'spam') {
+            $result->invalidate( $tags, __( 'Die eingegebene Emailaddresse ist ungültig.', 'contact-form-7-email-validation' ));
+        }
+    }
+    return $result;
+}
+
 
 function wp_mail_validator_validate_mail_address($approved, $mail_address)
 {
