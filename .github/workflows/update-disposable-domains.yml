@@ -24,6 +24,15 @@ jobs:
           mv data/disposable-email-domains.txt.new data/disposable-email-domains.txt
           echo "COUNT=$(wc -l < data/disposable-email-domains.txt | tr -d ' ')" >> "$GITHUB_ENV"
 
+      # PRs opened with the workflow token don't trigger CI, so test the new list here.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress
+      - run: composer test
+
       - uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/update-disposable-domains
@@ -31,6 +40,8 @@ jobs:
           title: 'chore: update disposable domain list'
           body: |
             Monthly update from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) (CC0), now ${{ env.COUNT }} domains.
+
+            Unit tests passed with the new list in the workflow run. CI does not start for PRs opened by a workflow, so merge with your admin bypass.
 
             Ships with the next release.
           labels: blacklist
