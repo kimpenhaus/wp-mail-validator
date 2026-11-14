@@ -1,0 +1,19 @@
+# Files that are not shipped to WordPress.org (used by the deploy workflow)
+/.git
+/.github
+/.wordpress-org
+/tests
+/vendor
+/.distignore
+/.editorconfig
+/.gitattributes
+/.gitignore
+/.phpunit.result.cache
+/composer.json
+/composer.lock
+/phpcs.xml.dist
+/phpunit.xml.dist
+/renovate.json
+/CONTRIBUTING.md
+/SECURITY.md
+/README.md
