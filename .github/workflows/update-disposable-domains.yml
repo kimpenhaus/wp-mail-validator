@@ -33,7 +33,7 @@ jobs:
       - run: composer install --no-interaction --no-progress
       - run: composer test
 
-      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+      - uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           branch: chore/update-disposable-domains
           commit-message: 'chore: update disposable domain list'
