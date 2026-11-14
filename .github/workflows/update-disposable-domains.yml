@@ -1,0 +1,37 @@
+name: Update disposable domain list
+
+on:
+  schedule:
+    - cron: '17 4 1 * *' # monthly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download list from disposable-email-domains (CC0)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf \
+            | tr -d '\r' | tr 'A-Z' 'a-z' | sed '/^\s*$/d' > data/disposable-email-domains.txt.new
+          # Guard against a broken download replacing the list.
+          test "$(wc -l < data/disposable-email-domains.txt.new)" -gt 1000
+          mv data/disposable-email-domains.txt.new data/disposable-email-domains.txt
+          echo "COUNT=$(wc -l < data/disposable-email-domains.txt | tr -d ' ')" >> "$GITHUB_ENV"
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/update-disposable-domains
+          commit-message: 'chore: update disposable domain list'
+          title: 'chore: update disposable domain list'
+          body: |
+            Monthly update from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) (CC0), now ${{ env.COUNT }} domains.
+
+            Ships with the next release.
+          labels: blacklist
+          delete-branch: true
