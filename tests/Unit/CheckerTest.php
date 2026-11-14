@@ -61,7 +61,6 @@ class CheckerTest extends TestCase {
 			'long TLD'        => array( 'jane@example.online' ),
 			'four-letter TLD' => array( 'jane@example.info' ),
 			'plus addressing' => array( 'jane+blog@example.com' ),
-			'surrounding space' => array( '  jane@example.com ' ),
 		);
 	}
 

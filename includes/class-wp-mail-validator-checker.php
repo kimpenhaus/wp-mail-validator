@@ -51,8 +51,6 @@ class WP_Mail_Validator_Checker {
 	 * @return int One of the class constants.
 	 */
 	public function validate( $mail_address ) {
-		$mail_address = trim( (string) $mail_address );
-
 		if ( ! is_email( $mail_address ) ) {
 			return self::SYNTAX_INCORRECT;
 		}
@@ -158,7 +156,8 @@ class WP_Mail_Validator_Checker {
 		$greeting = $this->read_reply( $socket );
 
 		if ( 220 !== $greeting ) {
-			$this->close( $socket, false );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- network socket, not a file.
+			fclose( $socket );
 			return 0 === $greeting ? self::CONNECTION_FAILED : self::REQUEST_REJECTED;
 		}
 
@@ -222,16 +221,13 @@ class WP_Mail_Validator_Checker {
 	}
 
 	/**
-	 * Closes an SMTP connection.
+	 * Says goodbye and closes an SMTP connection.
 	 *
-	 * @param resource $socket   Open SMTP connection.
-	 * @param bool     $send_quit Whether to say goodbye first.
+	 * @param resource $socket Open SMTP connection.
 	 */
-	private function close( $socket, $send_quit = true ) {
-		if ( $send_quit ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- network socket, not a file.
-			fwrite( $socket, "QUIT\r\n" );
-		}
+	private function close( $socket ) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- network socket, not a file.
+		fwrite( $socket, "QUIT\r\n" );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- network socket, not a file.
 		fclose( $socket );

@@ -8,3 +8,5 @@
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 delete_option( 'wp_mail_validator_options' );
+delete_option( 'wp_mail_validator_eaten_spam' );
+delete_option( 'wp_mail_validator_version' );
