@@ -20,7 +20,7 @@ Checks, in this order:
 2. **Disposable mail services** – more than 10,000 known throw-away domains (mailinator, 10minutemail, …), updated with every plugin release.
 3. **Syntax** – the address must be well-formed.
 4. **Mail server** – the domain must have a mail server (MX record) or at least an address record.
-5. **Mailbox** (optional) – asks the mail server whether the mailbox exists.
+5. **Mailbox** – asks the mail server whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; servers that accept any address (catch-all), greylist or refuse to answer never cause false positives. Results are cached, and the check is skipped automatically if your host blocks port 25.
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks carry no mail-address; you can choose to accept or drop them.
 
@@ -35,7 +35,8 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks carry no
 To validate an address, the plugin connects to the mail infrastructure of the **commenter's** domain:
 
 * **DNS** – it looks up the MX, A and AAAA records of the domain, using your server's resolver.
-* **SMTP** (only if "Verify mailbox on the mail server" is on) – it connects to the domain's mail server on port 25 and asks whether it accepts mail for the address. The mail server receives your site's host name and the address being checked. No mail is sent.
+* **SMTP** (only if "Verify mailbox on the mail server" is on) – it connects to the domain's mail server on port 25 and asks whether it accepts mail for the address and for a random address at the same domain (to detect servers that accept anything). The mail server receives your site's host name and the addresses being checked. No mail is sent.
+* **Port test** (only if "Verify mailbox on the mail server" is on) – at most once a day it opens a connection to the mail server of gmail.com on port 25 and closes it right after the greeting, to find out whether your host allows outgoing SMTP connections. No data is transmitted.
 
 No data is sent to the plugin author or any other third party.
 
@@ -48,9 +49,13 @@ Comment checks only run if *Settings → Discussion → "Comment author must fil
 
 == Frequently Asked Questions ==
 
-= Valid comments end up in spam – why? =
+= Does the mailbox check work on my host? =
 
-Most likely your host blocks outgoing connections on port 25, so the mailbox cannot be verified. Turn off *Verify mailbox on the mail server*, or set *Accept syntactically correct mail-addresses* to *Yes*.
+The settings page tells you. Many hosting providers block outgoing connections on port 25; the plugin detects that and skips the mailbox check, all other checks keep working.
+
+= Which providers can the mailbox check verify? =
+
+Only those that answer honestly, e.g. Gmail. Outlook, Yahoo and catch-all domains accept any address during the check, so their addresses always pass it.
 
 = Where does the list of disposable domains come from? =
 
@@ -69,7 +74,9 @@ Add them to the blacklist in the settings, one regular expression per line, e.g.
 * Security: settings page protected against CSRF, restricted to administrators, all output escaped
 * New: bundled list of more than 10,000 disposable mail domains, updated with every release. It replaces the editable trashmail list; entries you had added are moved to your blacklist
 * New: option to turn off the mailbox check (port 25)
-* Improved: mailbox check takes seconds instead of minutes when a mail server does not answer, speaks proper SMTP and treats temporary errors (greylisting) as inconclusive
+* Improved: mailbox check only rejects on an explicit "recipient unknown" (5.1.1); greylisting, policy blocks and catch-all servers no longer cause false positives
+* Improved: mailbox check is skipped automatically if the host blocks port 25, caches its results and takes seconds instead of minutes when a server does not answer
+* Removed: the three "accept on connection failure / rejected request / timeout" settings – inconclusive results now always pass
 * Improved: blacklist entries are matched case-insensitively; invalid entries are reported when saving
 * Removed: Windows-specific default-gateway setting (no longer needed)
 * Requires WordPress 6.0 and PHP 7.4
