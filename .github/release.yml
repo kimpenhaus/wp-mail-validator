@@ -18,6 +18,6 @@ changelog:
     - title: Documentation
       labels: [documentation]
     - title: Maintenance
-      labels: [chore, dependencies, github_actions]
+      labels: [chore, dependencies]
     - title: Other changes
       labels: ["*"]
