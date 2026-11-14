@@ -5,8 +5,8 @@ Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 0.7.0
-License: GPLv3
-License URI: https://www.gnu.org/licenses/gpl-3.0.html
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Stops comment and registration spam by validating mail-addresses: syntax, mail server, mailbox, disposable mail services and your own blacklist.
 
@@ -56,9 +56,9 @@ Most likely your host blocks outgoing connections on port 25, so the mailbox can
 
 From the community-maintained [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) project (CC0). Please report missing or wrongly listed domains there.
 
-= Can I use my own list of disposable domains? =
+= How do I block additional domains? =
 
-Yes. Enter it in the trashmail textarea (one regular expression per line); it replaces the bundled list. *Restore default blacklist* switches back to the bundled list.
+Add them to the blacklist in the settings, one regular expression per line, e.g. `@spam\.example$`. Entries you had added to the trashmail list of earlier versions were moved there automatically.
 
 == Changelog ==
 
@@ -67,12 +67,13 @@ Yes. Enter it in the trashmail textarea (one regular expression per line); it re
 * Fixed: the bundled trashmail list was never loaded
 * Fixed: addresses with long top-level domains (`.info`, `.online`, …) or `+` were rejected as spam
 * Security: settings page protected against CSRF, restricted to administrators, all output escaped
-* New: bundled list of more than 10,000 disposable mail domains, updated with every release
+* New: bundled list of more than 10,000 disposable mail domains, updated with every release. It replaces the editable trashmail list; entries you had added are moved to your blacklist
 * New: option to turn off the mailbox check (port 25)
 * Improved: mailbox check takes seconds instead of minutes when a mail server does not answer, speaks proper SMTP and treats temporary errors (greylisting) as inconclusive
 * Improved: blacklist entries are matched case-insensitively; invalid entries are reported when saving
 * Removed: Windows-specific default-gateway setting (no longer needed)
 * Requires WordPress 6.0 and PHP 7.4
+* License changed from GPLv3 to GPLv2 or later, like WordPress itself
 
 = 0.6.5 =
 * added WP 5.4 as tested version
