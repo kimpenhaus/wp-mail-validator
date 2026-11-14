@@ -85,22 +85,17 @@ class PluginTest extends TestCase {
 			array(
 				'use_user_defined_blacklist' => 'yes',
 				'user_defined_blacklist'     => '@evil\.example$',
-				'eaten_spam'                 => 41,
 			)
 		);
+		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 41;
 
 		$this->assertSame( 'spam', wp_mail_validator_validate_mail_address( 1, 'bob@evil.example' ) );
-		$this->assertSame( 42, $this->plugin_options()['eaten_spam'] );
+		$this->assertSame( 42, $this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] );
 	}
 
-	public function test_bundled_trashmail_list_is_used_when_no_custom_list_is_set() {
+	public function test_disposable_address_is_spam() {
 		$this->set_plugin_options( array() );
-		$this->assertSame( 'spam', wp_mail_validator_validate_mail_address( 1, 'bob@mailinator.com' ) );
-	}
-
-	public function test_custom_trashmail_list_replaces_bundled_list() {
-		$this->set_plugin_options( array( 'trashmail_service_blacklist' => 'only-this\.example' ) );
-		$this->assertSame( 'spam', wp_mail_validator_validate_mail_address( 1, 'bob@only-this.example' ) );
+		$this->assertSame( 'spam', wp_mail_validator_validate_mail_address( 1, ' bob@Mailinator.com ' ) );
 	}
 
 	public function test_disabled_trashmail_check_is_skipped() {
@@ -108,7 +103,7 @@ class PluginTest extends TestCase {
 		// Falls through to the syntax check, which fails without any network access.
 		Functions\when( 'is_email' )->justReturn( false );
 		$this->assertSame( 'spam', wp_mail_validator_validate_mail_address( 1, 'bob@mailinator.com' ) );
-		$this->assertSame( 1, $this->plugin_options()['eaten_spam'] );
+		$this->assertSame( 1, $this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] );
 	}
 
 	/*
@@ -183,7 +178,7 @@ class PluginTest extends TestCase {
 	 */
 
 	public function test_sanitizer_whitelists_switches_and_drops_unknown_keys() {
-		$this->set_plugin_options( array( 'eaten_spam' => 5 ) );
+		$this->set_plugin_options( array( 'check_registrations' => 'yes' ) );
 
 		$output = wp_mail_validator_sanitize_options(
 			array(
@@ -196,7 +191,7 @@ class PluginTest extends TestCase {
 
 		$this->assertSame( 'no', $output['check_mailbox'] );
 		$this->assertSame( 'no', $output['accept_pingbacks'] );
-		$this->assertSame( 5, $output['eaten_spam'], 'Counter is kept when the form does not send it.' );
+		$this->assertSame( 'yes', $output['check_registrations'], 'Settings not submitted keep their value.' );
 		$this->assertSame( array_keys( wp_mail_validator_defaults() ), array_keys( $output ) );
 	}
 
@@ -209,14 +204,6 @@ class PluginTest extends TestCase {
 		$this->assertSame( '@spam\.example$', $output['user_defined_blacklist'] );
 	}
 
-	public function test_restore_button_resets_trashmail_list_to_bundled() {
-		$this->set_plugin_options( array( 'trashmail_service_blacklist' => 'custom' ) );
-
-		$output = wp_mail_validator_sanitize_options( array( 'trashmail_service_blacklist' => 'custom', 'restore_trashmail_blacklist' => '1' ) );
-
-		$this->assertSame( '', $output['trashmail_service_blacklist'] );
-	}
-
 	public function test_sanitizer_handles_non_array_input() {
 		$this->set_plugin_options( array() );
 		$this->assertSame( wp_mail_validator_defaults(), wp_mail_validator_sanitize_options( 'garbage' ) );
@@ -226,31 +213,80 @@ class PluginTest extends TestCase {
 	 * Upgrade
 	 */
 
-	public function test_upgrade_switches_old_default_trashmail_list_to_bundled_list() {
-		$old_default = file_get_contents( __DIR__ . '/fixtures/trash.mail.service.blacklist-0.6.5' );
-		$this->wp_options[ WP_MAIL_VALIDATOR_OPTION ] = array(
-			'trashmail_service_blacklist' => $old_default,
-			'default_gateway'             => '',
-			'eaten_spam'                  => '3',
+	private function store_legacy_options( array $options ) {
+		$this->wp_options[ WP_MAIL_VALIDATOR_OPTION ] = $options;
+	}
+
+	private function legacy_list( $version ) {
+		return file_get_contents( __DIR__ . '/fixtures/trash.mail.service.blacklist-' . $version );
+	}
+
+	/**
+	 * @dataProvider legacy_versions
+	 */
+	public function test_upgrade_drops_shipped_trashmail_list_and_migrates_counter( $version ) {
+		$this->store_legacy_options(
+			array(
+				'trashmail_service_blacklist' => str_replace( "\n", "\r\n", $this->legacy_list( $version ) ),
+				'default_gateway'             => '',
+				'eaten_spam'                  => '3',
+				'check_registrations'         => 'yes',
+			)
 		);
 
 		wp_mail_validator_upgrade();
 
-		$this->assertSame( '', $this->plugin_options()['trashmail_service_blacklist'] );
-		$this->assertSame( WP_MAIL_VALIDATOR_VERSION, $this->plugin_options()['version'] );
-		$this->assertArrayNotHasKey( 'default_gateway', $this->plugin_options() );
+		$this->assertSame( array_merge( wp_mail_validator_defaults(), array( 'check_registrations' => 'yes' ) ), $this->plugin_options() );
+		$this->assertSame( 3, $this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] );
+		$this->assertSame( WP_MAIL_VALIDATOR_VERSION, $this->wp_options[ WP_MAIL_VALIDATOR_VERSION_OPTION ] );
 	}
 
-	public function test_upgrade_keeps_a_user_edited_trashmail_list() {
-		$this->set_plugin_options( array( 'trashmail_service_blacklist' => "my.example\nother.example" ) );
+	public function legacy_versions() {
+		return array(
+			'0.5.0' => array( '0.5.0' ),
+			'0.6.5' => array( '0.6.5' ),
+		);
+	}
+
+	public function test_upgrade_moves_admin_added_trashmail_entries_to_user_blacklist() {
+		$this->store_legacy_options(
+			array(
+				'trashmail_service_blacklist' => $this->legacy_list( '0.6.5' ) . "\nmy-own\\.example\nMailinator.com\n",
+				'user_defined_blacklist'      => 'existing',
+			)
+		);
 
 		wp_mail_validator_upgrade();
 
-		$this->assertSame( "my.example\nother.example", $this->plugin_options()['trashmail_service_blacklist'] );
+		$this->assertSame( "existing\nmy-own\\.example", $this->plugin_options()['user_defined_blacklist'] );
+		$this->assertSame( 'yes', $this->plugin_options()['use_user_defined_blacklist'] );
+	}
+
+	public function test_upgrade_ignores_trashmail_entries_when_check_was_disabled() {
+		$this->store_legacy_options(
+			array(
+				'trashmail_service_blacklist'     => 'my-own\\.example',
+				'use_trashmail_service_blacklist' => 'no',
+			)
+		);
+
+		wp_mail_validator_upgrade();
+
+		$this->assertSame( '', $this->plugin_options()['user_defined_blacklist'] );
+		$this->assertSame( 'no', $this->plugin_options()['use_user_defined_blacklist'] );
+	}
+
+	public function test_upgrade_keeps_existing_counter_option() {
+		$this->store_legacy_options( array( 'eaten_spam' => '3' ) );
+		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 10;
+
+		wp_mail_validator_upgrade();
+
+		$this->assertSame( 10, $this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] );
 	}
 
 	public function test_upgrade_runs_only_once_per_version() {
-		$this->set_plugin_options( array( 'version' => WP_MAIL_VALIDATOR_VERSION ) );
+		$this->wp_options[ WP_MAIL_VALIDATOR_VERSION_OPTION ] = WP_MAIL_VALIDATOR_VERSION;
 		Functions\expect( 'update_option' )->never();
 
 		wp_mail_validator_upgrade();
@@ -261,7 +297,7 @@ class PluginTest extends TestCase {
 	 */
 
 	public function test_info_label_contains_counter() {
-		$this->set_plugin_options( array( 'eaten_spam' => 7 ) );
+		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 7;
 		$this->assertStringContainsString( '<strong>7</strong>', wp_mail_validator_info_label( '<p>', '</p>' ) );
 	}
 

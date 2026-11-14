@@ -45,6 +45,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 					$this->wp_options[ $name ] = $value;
 					return true;
 				},
+				'add_option'      => function ( $name, $value ) {
+					if ( array_key_exists( $name, $this->wp_options ) ) {
+						return false;
+					}
+					$this->wp_options[ $name ] = $value;
+					return true;
+				},
 				'get_current_user_id' => 0,
 				'home_url'        => 'https://blog.example',
 				'wp_parse_url'    => static function ( $url, $component = -1 ) {

@@ -8,8 +8,8 @@
  * Requires PHP:      7.4
  * Author:            Marcus Kimpenhaus
  * Author URI:        https://github.com/kimpenhaus/
- * License:           GPLv3
- * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       wp-mail-validator
  *
  * @package WP_Mail_Validator
@@ -19,6 +19,8 @@ defined( 'ABSPATH' ) || exit;
 
 define( 'WP_MAIL_VALIDATOR_VERSION', '0.7.0' );
 define( 'WP_MAIL_VALIDATOR_OPTION', 'wp_mail_validator_options' );
+define( 'WP_MAIL_VALIDATOR_COUNTER_OPTION', 'wp_mail_validator_eaten_spam' );
+define( 'WP_MAIL_VALIDATOR_VERSION_OPTION', 'wp_mail_validator_version' );
 define( 'WP_MAIL_VALIDATOR_DISPOSABLE_FILE', __DIR__ . '/data/disposable-email-domains.txt' );
 
 require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
@@ -28,13 +30,12 @@ require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
  */
 
 /**
- * Default option values. Switches are stored as 'yes' / 'no' for compatibility with earlier versions.
+ * Default settings. Switches are stored as 'yes' / 'no' for compatibility with earlier versions.
  *
  * @return array
  */
 function wp_mail_validator_defaults() {
 	return array(
-		'eaten_spam'                              => 0,
 		'check_mailbox'                           => 'yes',
 		'ignore_failed_connection'                => 'no',
 		'ignore_request_rejected'                 => 'no',
@@ -44,39 +45,20 @@ function wp_mail_validator_defaults() {
 		'use_user_defined_blacklist'              => 'no',
 		'user_defined_blacklist'                  => '',
 		'use_trashmail_service_blacklist'         => 'yes',
-		'trashmail_service_blacklist'             => '', // Empty: use the bundled list of disposable domains.
 		'check_registrations'                     => 'no',
-		'version'                                 => '', // Plugin version the options were last migrated to.
 	);
 }
 
 /**
- * Option keys that hold a yes/no switch.
- *
- * @return string[]
- */
-function wp_mail_validator_switch_keys() {
-	return array_keys( array_filter( wp_mail_validator_defaults(), 'wp_mail_validator_is_switch_value' ) );
-}
-
-/**
- * Whether a default value marks a yes/no switch.
- *
- * @param mixed $value Default value.
- * @return bool
- */
-function wp_mail_validator_is_switch_value( $value ) {
-	return 'yes' === $value || 'no' === $value;
-}
-
-/**
- * Returns the plugin options merged with their defaults.
+ * Returns the settings merged with their defaults; unknown keys are dropped.
  *
  * @return array
  */
 function wp_mail_validator_get_options() {
-	$stored = get_option( WP_MAIL_VALIDATOR_OPTION, array() );
-	return wp_parse_args( is_array( $stored ) ? $stored : array(), wp_mail_validator_defaults() );
+	$stored   = get_option( WP_MAIL_VALIDATOR_OPTION, array() );
+	$defaults = wp_mail_validator_defaults();
+
+	return array_intersect_key( wp_parse_args( is_array( $stored ) ? $stored : array(), $defaults ), $defaults );
 }
 
 /*
@@ -159,15 +141,9 @@ function wp_mail_validator_validate_mail_address( $approved, $mail_address ) {
 		return wp_mail_validator_fend_it();
 	}
 
-	if ( 'yes' === $options['use_trashmail_service_blacklist'] ) {
-		$custom_list  = trim( $options['trashmail_service_blacklist'] );
-		$is_trashmail = '' === $custom_list
-			? wp_mail_validator_is_disposable_domain( WP_Mail_Validator_Checker::domain_of( $mail_address ) )
-			: wp_mail_validator_matches_patterns( $mail_address, $custom_list );
-
-		if ( $is_trashmail ) {
-			return wp_mail_validator_fend_it();
-		}
+	if ( 'yes' === $options['use_trashmail_service_blacklist']
+		&& wp_mail_validator_is_disposable_domain( WP_Mail_Validator_Checker::domain_of( $mail_address ) ) ) {
+		return wp_mail_validator_fend_it();
 	}
 
 	$checker = new WP_Mail_Validator_Checker( 'yes' === $options['check_mailbox'] );
@@ -242,16 +218,17 @@ function wp_mail_validator_split_lines( $text ) {
 }
 
 /**
- * Bundled list of disposable mail domains as a lookup table.
+ * Bundled list of disposable mail domains as a lookup table. The file holds one
+ * lower-cased domain per line (see .github/workflows/update-disposable-domains.yml).
  *
- * @return array<string, true>
+ * @return array<string, int>
  */
 function wp_mail_validator_disposable_domains() {
 	static $domains = null;
 
 	if ( null === $domains ) {
-		$lines   = is_readable( WP_MAIL_VALIDATOR_DISPOSABLE_FILE ) ? file( WP_MAIL_VALIDATOR_DISPOSABLE_FILE ) : array();
-		$domains = array_fill_keys( array_map( 'strtolower', wp_mail_validator_split_lines( implode( "\n", $lines ) ) ), true );
+		$lines   = is_readable( WP_MAIL_VALIDATOR_DISPOSABLE_FILE ) ? file( WP_MAIL_VALIDATOR_DISPOSABLE_FILE, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) : false;
+		$domains = $lines ? array_flip( $lines ) : array();
 	}
 
 	return $domains;
@@ -283,9 +260,7 @@ function wp_mail_validator_is_disposable_domain( $domain ) {
  * @return string 'spam'
  */
 function wp_mail_validator_fend_it() {
-	$options               = wp_mail_validator_get_options();
-	$options['eaten_spam'] = absint( $options['eaten_spam'] ) + 1;
-	update_option( WP_MAIL_VALIDATOR_OPTION, $options );
+	update_option( WP_MAIL_VALIDATOR_COUNTER_OPTION, wp_mail_validator_fended_spam_attack_count() + 1 );
 
 	return 'spam';
 }
@@ -316,7 +291,7 @@ function wp_mail_validator_info_label( $string_before = '', $string_after = '' )
  * @return int
  */
 function wp_mail_validator_fended_spam_attack_count() {
-	return absint( wp_mail_validator_get_options()['eaten_spam'] );
+	return absint( get_option( WP_MAIL_VALIDATOR_COUNTER_OPTION, 0 ) );
 }
 
 /**
@@ -348,46 +323,35 @@ function wp_mail_validator_register_setting() {
 add_action( 'admin_init', 'wp_mail_validator_register_setting' );
 
 /**
- * Sanitizes submitted options. Only known keys are kept, values not submitted keep their current value.
+ * Sanitizes submitted settings. Only known keys are kept, settings not submitted keep their current value.
  *
- * @param mixed $input Submitted options.
+ * @param mixed $input Submitted settings.
  * @return array
  */
 function wp_mail_validator_sanitize_options( $input ) {
 	$input  = is_array( $input ) ? $input : array();
 	$output = wp_mail_validator_get_options();
 
-	foreach ( wp_mail_validator_switch_keys() as $key ) {
-		if ( isset( $input[ $key ] ) ) {
-			$output[ $key ] = 'yes' === $input[ $key ] ? 'yes' : 'no';
+	foreach ( array_keys( $output ) as $key ) {
+		if ( ! isset( $input[ $key ] ) ) {
+			continue;
 		}
+
+		$output[ $key ] = 'user_defined_blacklist' === $key
+			? wp_mail_validator_sanitize_patterns( $input[ $key ] )
+			: ( 'yes' === $input[ $key ] ? 'yes' : 'no' );
 	}
 
-	if ( isset( $input['eaten_spam'] ) ) {
-		$output['eaten_spam'] = absint( $input['eaten_spam'] );
-	}
-
-	foreach ( array( 'user_defined_blacklist', 'trashmail_service_blacklist' ) as $key ) {
-		if ( isset( $input[ $key ] ) ) {
-			$output[ $key ] = wp_mail_validator_sanitize_patterns( $input[ $key ], $key );
-		}
-	}
-
-	if ( ! empty( $input['restore_trashmail_blacklist'] ) ) {
-		$output['trashmail_service_blacklist'] = '';
-	}
-
-	return array_intersect_key( $output, wp_mail_validator_defaults() );
+	return $output;
 }
 
 /**
  * Normalizes a pattern list and drops invalid regular expressions.
  *
- * @param mixed  $value Submitted text.
- * @param string $key   Option key, used for the error message.
+ * @param mixed $value Submitted text.
  * @return string
  */
-function wp_mail_validator_sanitize_patterns( $value, $key ) {
+function wp_mail_validator_sanitize_patterns( $value ) {
 	$valid   = array();
 	$invalid = array();
 
@@ -402,7 +366,7 @@ function wp_mail_validator_sanitize_patterns( $value, $key ) {
 	if ( $invalid ) {
 		add_settings_error(
 			WP_MAIL_VALIDATOR_OPTION,
-			'invalid_' . $key,
+			'invalid_user_defined_blacklist',
 			sprintf(
 				/* translators: %s: comma-separated list of invalid entries. */
 				__( 'These blacklist entries are no valid regular expressions and were removed: %s', 'wp-mail-validator' ),
@@ -448,29 +412,6 @@ function wp_mail_validator_switch_row( $options, $key, $label, $description ) {
 }
 
 /**
- * Renders a pattern list row.
- *
- * @param array  $options     Current options.
- * @param string $key         Option key.
- * @param string $description Description below the entry count.
- */
-function wp_mail_validator_patterns_row( $options, $key, $description = '' ) {
-	$count = count( wp_mail_validator_split_lines( $options[ $key ] ) );
-	?>
-	<tr>
-		<th scope="row">&nbsp;</th>
-		<td>
-			<textarea id="<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( WP_MAIL_VALIDATOR_OPTION . '[' . $key . ']' ); ?>" rows="15" cols="40" class="code"><?php echo esc_textarea( $options[ $key ] ); ?></textarea>
-			<p class="description">
-				<?php echo esc_html( number_format_i18n( $count ) . ' ' . __( 'Entries', 'wp-mail-validator' ) ); ?>
-				<?php echo $description ? '<br />' . esc_html( $description ) : ''; ?>
-			</p>
-		</td>
-	</tr>
-	<?php
-}
-
-/**
  * Renders the settings page.
  */
 function wp_mail_validator_options_page() {
@@ -491,27 +432,28 @@ function wp_mail_validator_options_page() {
 				wp_mail_validator_switch_row( $options, 'ignore_failed_connection', __( 'Accept on connection failures', 'wp-mail-validator' ), __( 'Choose to ignore connection failures with mail servers while validating mail-addresses', 'wp-mail-validator' ) . '.' );
 				wp_mail_validator_switch_row( $options, 'ignore_request_rejected', __( 'Accept on rejected requests', 'wp-mail-validator' ), __( 'Choose to ignore rejected request from mail servers while validating mail-addresses', 'wp-mail-validator' ) . '.' );
 				wp_mail_validator_switch_row( $options, 'accept_correct_syntax_on_server_timeout', __( 'Accept syntactically correct mail-addresses', 'wp-mail-validator' ), __( 'Choose if syntactically correct mail-addresses can pass when the mail server did not respond in time', 'wp-mail-validator' ) . '.' );
-				wp_mail_validator_switch_row( $options, 'use_trashmail_service_blacklist', __( 'Reject mail-adresses from trashmail services', 'wp-mail-validator' ), __( 'Choose to reject mail-addresses from trashmail services <strong>(single entry per line)</strong>', 'wp-mail-validator' ) );
-				wp_mail_validator_patterns_row(
+				wp_mail_validator_switch_row(
 					$options,
-					'trashmail_service_blacklist',
+					'use_trashmail_service_blacklist',
+					__( 'Reject mail-adresses from trashmail services', 'wp-mail-validator' ),
 					sprintf(
-						/* translators: %s: number of bundled domains. */
-						__( 'Leave empty to use the bundled, regularly updated list of %s disposable mail domains (recommended). Entries here replace that list; each line is a regular expression.', 'wp-mail-validator' ),
+						/* translators: %s: number of known disposable mail domains. */
+						__( 'Reject mail-addresses from %s known disposable mail services. The list is updated with every plugin release; add your own entries to the blacklist below.', 'wp-mail-validator' ),
 						number_format_i18n( count( wp_mail_validator_disposable_domains() ) )
 					)
 				);
+				wp_mail_validator_switch_row( $options, 'use_user_defined_blacklist', __( 'Reject mail-adresses from user-defined blacklist', 'wp-mail-validator' ), __( 'Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', 'wp-mail-validator' ) );
 				?>
 				<tr>
-					<th scope="row">&nbsp;</th>
+					<th scope="row"><label for="user_defined_blacklist"><?php esc_html_e( 'Blacklist', 'wp-mail-validator' ); ?></label></th>
 					<td>
-						<button type="submit" class="button" name="<?php echo esc_attr( WP_MAIL_VALIDATOR_OPTION ); ?>[restore_trashmail_blacklist]" value="1"><?php esc_html_e( 'Restore default blacklist', 'wp-mail-validator' ); ?></button>
+						<textarea id="user_defined_blacklist" name="<?php echo esc_attr( WP_MAIL_VALIDATOR_OPTION ); ?>[user_defined_blacklist]" rows="15" cols="40" class="code"><?php echo esc_textarea( $options['user_defined_blacklist'] ); ?></textarea>
+						<p class="description">
+							<?php echo esc_html( number_format_i18n( count( wp_mail_validator_split_lines( $options['user_defined_blacklist'] ) ) ) . ' ' . __( 'Entries', 'wp-mail-validator' ) ); ?><br />
+							<?php esc_html_e( 'Each line is a regular expression, matched case-insensitively against the whole mail-address.', 'wp-mail-validator' ); ?>
+						</p>
 					</td>
 				</tr>
-				<?php
-				wp_mail_validator_switch_row( $options, 'use_user_defined_blacklist', __( 'Reject mail-adresses from user-defined blacklist', 'wp-mail-validator' ), __( 'Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', 'wp-mail-validator' ) );
-				wp_mail_validator_patterns_row( $options, 'user_defined_blacklist', __( 'Each line is a regular expression, matched case-insensitively against the whole mail-address.', 'wp-mail-validator' ) );
-				?>
 			</table>
 			<h2><?php esc_html_e( 'Ping validation', 'wp-mail-validator' ); ?></h2>
 			<table class="form-table" role="presentation">
@@ -552,22 +494,53 @@ function wp_mail_validator_options_page() {
  * Migrates data from earlier versions. Runs once per plugin version.
  */
 function wp_mail_validator_upgrade() {
-	$options = wp_mail_validator_get_options();
-
-	if ( WP_MAIL_VALIDATOR_VERSION === $options['version'] ) {
+	if ( WP_MAIL_VALIDATOR_VERSION === get_option( WP_MAIL_VALIDATOR_VERSION_OPTION ) ) {
 		return;
 	}
 
-	// Up to 0.6.x the default trashmail list was copied into the options. Switch those
-	// installs to the bundled, updatable list; only lists edited by the user are kept.
-	$stored_list = wp_mail_validator_split_lines( strtolower( $options['trashmail_service_blacklist'] ) );
-	if ( $stored_list && md5( implode( "\n", $stored_list ) ) === '2007420ec53629759b1648a878f35e12' ) {
-		$options['trashmail_service_blacklist'] = '';
+	$stored  = get_option( WP_MAIL_VALIDATOR_OPTION, array() );
+	$stored  = is_array( $stored ) ? $stored : array();
+	$options = wp_mail_validator_get_options();
+
+	// Up to 0.6.x the spam counter lived inside the settings.
+	if ( isset( $stored['eaten_spam'] ) ) {
+		add_option( WP_MAIL_VALIDATOR_COUNTER_OPTION, absint( $stored['eaten_spam'] ) );
 	}
 
-	$options            = array_intersect_key( $options, wp_mail_validator_defaults() );
-	$options['version'] = WP_MAIL_VALIDATOR_VERSION;
+	// Up to 0.6.x the trashmail list was an editable copy in the settings. Entries the
+	// admin added to it are kept in the user-defined blacklist.
+	if ( ! empty( $stored['trashmail_service_blacklist'] ) && 'yes' === $options['use_trashmail_service_blacklist'] ) {
+		$added = wp_mail_validator_entries_added_to_legacy_list( $stored['trashmail_service_blacklist'] );
+
+		if ( $added ) {
+			$options['user_defined_blacklist']     = implode( "\n", array_unique( array_merge( wp_mail_validator_split_lines( $options['user_defined_blacklist'] ), $added ) ) );
+			$options['use_user_defined_blacklist'] = 'yes';
+		}
+	}
+
 	update_option( WP_MAIL_VALIDATOR_OPTION, $options );
+	update_option( WP_MAIL_VALIDATOR_VERSION_OPTION, WP_MAIL_VALIDATOR_VERSION );
 }
 add_action( 'admin_init', 'wp_mail_validator_upgrade', 5 );
 register_activation_hook( __FILE__, 'wp_mail_validator_upgrade' );
+
+/**
+ * Returns the entries of a pre-0.7 trashmail list that were neither shipped with
+ * the plugin nor are covered by the bundled disposable domain list.
+ *
+ * @param string $legacy_list Stored list, one entry per line.
+ * @return string[]
+ */
+function wp_mail_validator_entries_added_to_legacy_list( $legacy_list ) {
+	$shipped = array_flip( require __DIR__ . '/includes/legacy-trashmail-checksums.php' );
+
+	return array_values(
+		array_filter(
+			wp_mail_validator_split_lines( $legacy_list ),
+			static function ( $entry ) use ( $shipped ) {
+				$entry = strtolower( $entry );
+				return ! isset( $shipped[ hash( 'crc32b', $entry ) ] ) && ! wp_mail_validator_is_disposable_domain( $entry );
+			}
+		)
+	);
+}
