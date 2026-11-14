@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support forum on WordPress.org
+    url: https://wordpress.org/support/plugin/wp-mail-validator/
+    about: Questions about setup and usage.
+  - name: Report a security vulnerability
+    url: https://github.com/kimpenhaus/wp-mail-validator/security/advisories/new
+    about: Please report security issues privately, not as a public issue.

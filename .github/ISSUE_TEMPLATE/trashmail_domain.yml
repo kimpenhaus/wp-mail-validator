@@ -1,0 +1,28 @@
+name: Disposable / trashmail domain
+description: Suggest adding (or removing) a domain on the built-in trashmail service list.
+labels: ["blacklist", "needs-triage"]
+body:
+  - type: dropdown
+    id: action
+    attributes:
+      label: Action
+      options:
+        - Add domain(s)
+        - Remove domain(s)
+    validations:
+      required: true
+  - type: textarea
+    id: domains
+    attributes:
+      label: Domain(s)
+      description: One domain per line, without "@".
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link to the service, or why the domain is (not) a disposable mail provider.
+    validations:
+      required: true

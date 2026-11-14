@@ -1,0 +1,23 @@
+# Categories for auto-generated release notes ("Generate release notes" on GitHub)
+changelog:
+  exclude:
+    labels: [duplicate, invalid, wontfix]
+  categories:
+    - title: Breaking changes
+      labels: [breaking-change]
+    - title: Security
+      labels: [security]
+    - title: New features
+      labels: [enhancement]
+    - title: Bug fixes
+      labels: [bug]
+    - title: Compatibility
+      labels: [compatibility]
+    - title: Trashmail list
+      labels: [blacklist]
+    - title: Documentation
+      labels: [documentation]
+    - title: Maintenance
+      labels: [chore, dependencies]
+    - title: Other changes
+      labels: ["*"]
