@@ -22,11 +22,19 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 	 */
 	protected $wp_options = array();
 
+	/**
+	 * Fake transients: name => array( value, expiration ).
+	 *
+	 * @var array
+	 */
+	protected $transients = array();
+
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
 
 		$this->wp_options = array();
+		$this->transients = array();
 
 		Functions\stubTranslationFunctions();
 		Functions\stubEscapeFunctions();
@@ -50,6 +58,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 						return false;
 					}
 					$this->wp_options[ $name ] = $value;
+					return true;
+				},
+				'get_transient'   => function ( $name ) {
+					return isset( $this->transients[ $name ] ) ? $this->transients[ $name ][0] : false;
+				},
+				'set_transient'   => function ( $name, $value, $expiration = 0 ) {
+					$this->transients[ $name ] = array( $value, $expiration );
 					return true;
 				},
 				'get_current_user_id' => 0,

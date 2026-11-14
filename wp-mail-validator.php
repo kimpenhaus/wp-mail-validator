@@ -36,16 +36,13 @@ require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
  */
 function wp_mail_validator_defaults() {
 	return array(
-		'check_mailbox'                           => 'yes',
-		'ignore_failed_connection'                => 'no',
-		'ignore_request_rejected'                 => 'no',
-		'accept_correct_syntax_on_server_timeout' => 'no',
-		'accept_pingbacks'                        => 'yes',
-		'accept_trackbacks'                       => 'yes',
-		'use_user_defined_blacklist'              => 'no',
-		'user_defined_blacklist'                  => '',
-		'use_trashmail_service_blacklist'         => 'yes',
-		'check_registrations'                     => 'no',
+		'check_mailbox'                   => 'yes',
+		'accept_pingbacks'                => 'yes',
+		'accept_trackbacks'               => 'yes',
+		'use_user_defined_blacklist'      => 'no',
+		'user_defined_blacklist'          => '',
+		'use_trashmail_service_blacklist' => 'yes',
+		'check_registrations'             => 'no',
 	);
 }
 
@@ -148,33 +145,9 @@ function wp_mail_validator_validate_mail_address( $approved, $mail_address ) {
 
 	$checker = new WP_Mail_Validator_Checker( 'yes' === $options['check_mailbox'] );
 
-	return wp_mail_validator_accepts_result( $checker->validate( $mail_address ), $options )
-		? $approved
-		: wp_mail_validator_fend_it();
-}
-
-/**
- * Whether a checker result lets the mail-address pass, given the options.
- *
- * @param int   $result  One of the WP_Mail_Validator_Checker constants.
- * @param array $options Plugin options.
- * @return bool
- */
-function wp_mail_validator_accepts_result( $result, array $options ) {
-	switch ( $result ) {
-		case WP_Mail_Validator_Checker::VALID_MAIL:
-			return true;
-		case WP_Mail_Validator_Checker::CONNECTION_FAILED:
-			return 'yes' === $options['ignore_failed_connection'];
-		case WP_Mail_Validator_Checker::REQUEST_REJECTED:
-			return 'yes' === $options['ignore_request_rejected'];
-		case WP_Mail_Validator_Checker::SYNTAX_CORRECT:
-			// No mail server could be reached.
-			return 'yes' === $options['accept_correct_syntax_on_server_timeout'];
-		default:
-			// SYNTAX_INCORRECT, UNKNOWN_SERVER, INVALID_MAIL.
-			return false;
-	}
+	return WP_Mail_Validator_Checker::rejects( $checker->validate( $mail_address ) )
+		? wp_mail_validator_fend_it()
+		: $approved;
 }
 
 /**
@@ -428,10 +401,16 @@ function wp_mail_validator_options_page() {
 			<h2><?php esc_html_e( 'Comment validation', 'wp-mail-validator' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<?php
-				wp_mail_validator_switch_row( $options, 'check_mailbox', __( 'Verify mailbox on the mail server', 'wp-mail-validator' ), __( 'Connect to the mail server (port 25) to check whether the mailbox exists. Many hosting providers block outgoing connections on port 25 - if valid comments end up in spam, turn this off.', 'wp-mail-validator' ) );
-				wp_mail_validator_switch_row( $options, 'ignore_failed_connection', __( 'Accept on connection failures', 'wp-mail-validator' ), __( 'Choose to ignore connection failures with mail servers while validating mail-addresses', 'wp-mail-validator' ) . '.' );
-				wp_mail_validator_switch_row( $options, 'ignore_request_rejected', __( 'Accept on rejected requests', 'wp-mail-validator' ), __( 'Choose to ignore rejected request from mail servers while validating mail-addresses', 'wp-mail-validator' ) . '.' );
-				wp_mail_validator_switch_row( $options, 'accept_correct_syntax_on_server_timeout', __( 'Accept syntactically correct mail-addresses', 'wp-mail-validator' ), __( 'Choose if syntactically correct mail-addresses can pass when the mail server did not respond in time', 'wp-mail-validator' ) . '.' );
+				wp_mail_validator_switch_row(
+					$options,
+					'check_mailbox',
+					__( 'Verify mailbox on the mail server', 'wp-mail-validator' ),
+					__( 'Ask the mail server (port 25) whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; if the server does not answer clearly, the comment passes. No mail is sent.', 'wp-mail-validator' )
+					. ' <strong>' . ( ( new WP_Mail_Validator_Checker() )->port_25_open()
+						? __( 'Status: this server can reach mail servers.', 'wp-mail-validator' )
+						: __( 'Status: your hosting provider blocks outgoing connections on port 25, so the mailbox check is skipped.', 'wp-mail-validator' ) )
+					. '</strong>'
+				);
 				wp_mail_validator_switch_row(
 					$options,
 					'use_trashmail_service_blacklist',

@@ -57,22 +57,18 @@ class PluginTest extends TestCase {
 	/**
 	 * @dataProvider checker_results
 	 */
-	public function test_checker_result_mapping( $result, $options, $expected ) {
-		$this->assertSame( $expected, wp_mail_validator_accepts_result( $result, array_merge( wp_mail_validator_defaults(), $options ) ) );
+	public function test_only_negative_checker_results_reject( $result, $rejects ) {
+		$this->assertSame( $rejects, Checker::rejects( $result ) );
 	}
 
 	public function checker_results() {
 		return array(
-			'valid'                          => array( Checker::VALID_MAIL, array(), true ),
-			'invalid mailbox'                => array( Checker::INVALID_MAIL, array(), false ),
-			'unknown server'                 => array( Checker::UNKNOWN_SERVER, array(), false ),
-			'bad syntax'                     => array( Checker::SYNTAX_INCORRECT, array(), false ),
-			'connection failed, strict'      => array( Checker::CONNECTION_FAILED, array(), false ),
-			'connection failed, tolerant'    => array( Checker::CONNECTION_FAILED, array( 'ignore_failed_connection' => 'yes' ), true ),
-			'request rejected, strict'       => array( Checker::REQUEST_REJECTED, array(), false ),
-			'request rejected, tolerant'     => array( Checker::REQUEST_REJECTED, array( 'ignore_request_rejected' => 'yes' ), true ),
-			'server unreachable, strict'     => array( Checker::SYNTAX_CORRECT, array(), false ),
-			'server unreachable, tolerant'   => array( Checker::SYNTAX_CORRECT, array( 'accept_correct_syntax_on_server_timeout' => 'yes' ), true ),
+			'valid'          => array( Checker::VALID_MAIL, false ),
+			'catch-all'      => array( Checker::CATCH_ALL, false ),
+			'unknown'        => array( Checker::UNKNOWN, false ),
+			'invalid'        => array( Checker::INVALID_MAIL, true ),
+			'unknown server' => array( Checker::UNKNOWN_SERVER, true ),
+			'bad syntax'     => array( Checker::SYNTAX_INCORRECT, true ),
 		);
 	}
 

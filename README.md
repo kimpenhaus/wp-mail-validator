@@ -18,7 +18,7 @@ A WordPress anti-spam plugin that validates the mail-address of commenters and r
 | 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly |
 | 3 | Syntax | WordPress' `is_email()` |
 | 4 | Mail server | MX record, or A/AAAA record as fallback ([RFC 5321](https://www.rfc-editor.org/rfc/rfc5321#section-5.1)); null MX is rejected |
-| 5 | Mailbox *(optional)* | SMTP `RCPT TO` on port 25 – no mail is sent |
+| 5 | Mailbox *(optional)* | SMTP `RCPT TO` on port 25, no mail is sent. Rejects only on `5.1.1`/`5.1.10` (recipient unknown); detects catch-all servers, caches results, skips itself when port 25 is blocked |
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks can be accepted or dropped.
 
