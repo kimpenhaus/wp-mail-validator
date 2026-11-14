@@ -11,7 +11,7 @@
     "github-actions",
     "composer"
   ],
-  "automerge": false,
+  "automerge": true,
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
   "dependencyDashboard": true,
@@ -24,5 +24,22 @@
     ]
   },
   "semanticCommits": "enabled",
-  "timezone": "Europe/Berlin"
+  "timezone": "Europe/Berlin",
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "majors kommen als pr und werden von hand gemergt",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "PHPUnit 10+ needs PHP 8.1+, the plugin still supports PHP 7.4 (see composer.json config.platform)",
+      "matchPackageNames": [
+        "phpunit/phpunit"
+      ],
+      "allowedVersions": "<10"
+    }
+  ]
 }
