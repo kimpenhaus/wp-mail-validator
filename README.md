@@ -4,7 +4,7 @@
 [![Tested up to](https://img.shields.io/wordpress/plugin/tested/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
 [![PHP](https://img.shields.io/wordpress/plugin/required-php/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
 [![CI](https://github.com/kimpenhaus/wp-mail-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/kimpenhaus/wp-mail-validator/actions/workflows/ci.yml)
-[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
+[![License: GPL v2 or later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 
 A WordPress anti-spam plugin that validates the mail-address of commenters and registrants. Comments that fail are moved to spam, registrations are refused.
 
@@ -74,4 +74,4 @@ Issues and pull requests are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[GPLv3](LICENSE). The bundled disposable domain list is [CC0](https://github.com/disposable-email-domains/disposable-email-domains/blob/main/LICENSE.txt).
+[GPL-2.0-or-later](LICENSE), like WordPress itself. Versions up to 0.6.5 were released under GPLv3. The bundled disposable domain list is [CC0](https://github.com/disposable-email-domains/disposable-email-domains/blob/main/LICENSE.txt).
