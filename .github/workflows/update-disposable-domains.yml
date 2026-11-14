@@ -25,7 +25,7 @@ jobs:
           echo "COUNT=$(wc -l < data/disposable-email-domains.txt | tr -d ' ')" >> "$GITHUB_ENV"
 
       # PRs opened with the workflow token don't trigger CI, so test the new list here.
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.4'
           coverage: none
@@ -33,7 +33,7 @@ jobs:
       - run: composer install --no-interaction --no-progress
       - run: composer test
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           branch: chore/update-disposable-domains
           commit-message: 'chore: update disposable domain list'
