@@ -1,4 +1,4 @@
-# WP-Mail-Validator
+# Mail Validator
 
 [![WordPress.org version](https://img.shields.io/wordpress/plugin/v/wp-mail-validator?label=wordpress.org)](https://wordpress.org/plugins/wp-mail-validator/)
 [![Tested up to](https://img.shields.io/wordpress/plugin/tested/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
@@ -25,7 +25,7 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks can be a
 ## Theme functions
 
 ```php
-echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by: WP-Mail-Validator - <strong>42</strong> spam attacks fended!</p>
+echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by: Mail Validator - <strong>42</strong> spam attacks fended!</p>
 echo wp_mail_validator_fended_spam_attack_count();  // 42
 echo wp_mail_validator_version();                   // 0.7.0
 ```

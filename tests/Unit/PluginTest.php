@@ -292,9 +292,23 @@ class PluginTest extends TestCase {
 	 * Theme functions
 	 */
 
-	public function test_info_label_contains_counter() {
+	public function test_info_label_contains_name_and_counter() {
 		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 7;
-		$this->assertStringContainsString( '<strong>7</strong>', wp_mail_validator_info_label( '<p>', '</p>' ) );
+		$label = wp_mail_validator_info_label( '<p>', '</p>' );
+		$this->assertStringContainsString( '>Mail Validator</a>', $label );
+		$this->assertStringContainsString( '<strong>7</strong>', $label );
+	}
+
+	/*
+	 * Settings menu
+	 */
+
+	public function test_settings_menu_entry_is_translatable() {
+		Functions\expect( 'add_options_page' )
+			->once()
+			->with( 'Mail Validator', 'Mail Validator', 'manage_options', 'wp-mail-validator', 'wp_mail_validator_options_page' );
+
+		wp_mail_validator_add_options_page();
 	}
 
 	public function test_version_comes_from_constant() {

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping to improve WP-Mail-Validator!
+Thanks for helping to improve Mail Validator!
 
 - **Bugs & ideas:** open an [issue](https://github.com/kimpenhaus/wp-mail-validator/issues/new/choose).
 - **Usage questions:** use the [WordPress.org support forum](https://wordpress.org/support/plugin/wp-mail-validator/).

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="WP-Mail-Validator">
-	<description>WordPress Coding Standards and PHP compatibility for WP-Mail-Validator.</description>
+<ruleset name="Mail Validator">
+	<description>WordPress Coding Standards and PHP compatibility for Mail Validator.</description>
 
 	<file>.</file>
 	<exclude-pattern>/vendor/*</exclude-pattern>
