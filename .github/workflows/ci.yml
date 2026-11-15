@@ -53,3 +53,5 @@ jobs:
       - uses: wordpress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1
         with:
           build-dir: ${{ runner.temp }}/wp-mail-validator
+          # "wp" in name and slug is only refused for new plugins; the slug of this one cannot change.
+          ignore-codes: trademarked_term
