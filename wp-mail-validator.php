@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       WP-Mail-Validator
+ * Plugin Name:       Mail Validator – Disposable & Fake Address Blocker
  * Plugin URI:        https://github.com/kimpenhaus/wp-mail-validator
  * Description:       Anti-spam plugin that validates the mail-address of commenters and registrants: syntax, mail server (MX record), mailbox, user-defined blacklist and disposable mail services.
  * Version:           0.7.0
@@ -252,7 +252,7 @@ function wp_mail_validator_fend_it() {
 function wp_mail_validator_info_label( $string_before = '', $string_after = '' ) {
 	return $string_before
 		. esc_html__( 'Protected by', 'wp-mail-validator' )
-		. ': <a href="https://wordpress.org/plugins/wp-mail-validator/" title="WP-Mail-Validator" target="_blank" rel="noopener">WP-Mail-Validator</a> - <strong>'
+		. ': <a href="https://wordpress.org/plugins/wp-mail-validator/" target="_blank" rel="noopener">' . esc_html__( 'Mail Validator', 'wp-mail-validator' ) . '</a> - <strong>'
 		. esc_html( wp_mail_validator_fended_spam_attack_count() )
 		. '</strong> ' . esc_html__( 'spam attacks fended', 'wp-mail-validator' ) . '!'
 		. $string_after;
@@ -355,7 +355,7 @@ function wp_mail_validator_sanitize_patterns( $value ) {
  * Adds the settings page.
  */
 function wp_mail_validator_add_options_page() {
-	add_options_page( 'WP-Mail-Validator', 'WP-Mail-Validator', 'manage_options', 'wp-mail-validator', 'wp_mail_validator_options_page' );
+	add_options_page( __( 'Mail Validator', 'wp-mail-validator' ), __( 'Mail Validator', 'wp-mail-validator' ), 'manage_options', 'wp-mail-validator', 'wp_mail_validator_options_page' );
 }
 add_action( 'admin_menu', 'wp_mail_validator_add_options_page' );
 

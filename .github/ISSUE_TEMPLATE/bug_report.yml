@@ -1,5 +1,5 @@
 name: Bug report
-description: Something in WP-Mail-Validator isn't working as expected.
+description: Something in Mail Validator isn't working as expected.
 labels: ["bug", "needs-triage"]
 body:
   - type: markdown
@@ -19,7 +19,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Enable "…" in Settings → WP-Mail-Validator
+        1. Enable "…" in Settings → Mail Validator
         2. Post a comment with the address "…"
         3. …
     validations:

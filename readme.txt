@@ -1,4 +1,4 @@
-=== WP-Mail-Validator ===
+=== Mail Validator – Disposable & Fake Address Blocker ===
 Contributors: kimpenhaus
 Tags: anti-spam, comments, email validation, disposable email, registration
 Requires at least: 6.0
@@ -12,7 +12,7 @@ Stops comment and registration spam by validating mail-addresses: syntax, mail s
 
 == Description ==
 
-WP-Mail-Validator checks the mail-address of everyone who comments on your blog (and, optionally, registers). Comments with an address that fails a check are moved to spam for moderation, registrations are refused.
+Mail Validator (formerly WP-Mail-Validator) checks the mail-address of everyone who comments on your blog (and, optionally, registers). Comments with an address that fails a check are moved to spam for moderation, registrations are refused.
 
 Checks, in this order:
 
@@ -43,7 +43,7 @@ No data is sent to the plugin author or any other third party.
 == Installation ==
 
 1. Install the plugin via *Plugins → Add New* and activate it.
-2. Review the settings under *Settings → WP-Mail-Validator*.
+2. Review the settings under *Settings → Mail Validator*.
 
 Comment checks only run if *Settings → Discussion → "Comment author must fill out name and email"* is enabled.
 
