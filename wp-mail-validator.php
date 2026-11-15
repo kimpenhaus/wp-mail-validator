@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Mail Validator – Disposable & Fake Address Blocker
- * Plugin URI:        https://github.com/kimpenhaus/wp-mail-validator
- * Description:       Anti-spam plugin that validates the mail-address of commenters and registrants: syntax, mail server (MX record), mailbox, user-defined blacklist and disposable mail services.
- * Version:           0.7.1
+ * Plugin URI:        https://github.com/kimpenhaus/mail-validator
+ * Description:       Blocks comment and registration spam from disposable and fake email addresses: checks the syntax, the mail server and the mailbox, known disposable email services and your own blocklist.
+ * Version:           0.7.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Marcus Kimpenhaus
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WP_MAIL_VALIDATOR_VERSION', '0.7.1' );
+define( 'WP_MAIL_VALIDATOR_VERSION', '0.7.2' );
 define( 'WP_MAIL_VALIDATOR_OPTION', 'wp_mail_validator_options' );
 define( 'WP_MAIL_VALIDATOR_COUNTER_OPTION', 'wp_mail_validator_eaten_spam' );
 define( 'WP_MAIL_VALIDATOR_VERSION_OPTION', 'wp_mail_validator_version' );
@@ -116,7 +116,7 @@ function wp_mail_validator_validate_registration_mail( $errors, $sanitized_user_
 	$options = wp_mail_validator_get_options();
 
 	if ( 'yes' === $options['check_registrations'] && 'spam' === wp_mail_validator_validate_mail_address( '', $user_email ) ) {
-		$errors->add( 'wp_mail-validator-registration-error', __( '<strong>ERROR</strong>: Your mail-address is evaluated as spam.', 'wp-mail-validator' ) );
+		$errors->add( 'wp_mail-validator-registration-error', __( '<strong>Error:</strong> This email address cannot be used. Please register with a different one.', 'wp-mail-validator' ) );
 	}
 
 	return $errors;
@@ -250,11 +250,16 @@ function wp_mail_validator_fend_it() {
  * @return string
  */
 function wp_mail_validator_info_label( $string_before = '', $string_after = '' ) {
+	$count = wp_mail_validator_fended_spam_attack_count();
+	$link  = '<a href="https://wordpress.org/plugins/wp-mail-validator/" target="_blank" rel="noopener">' . esc_html__( 'Mail Validator', 'wp-mail-validator' ) . '</a>';
+
 	return $string_before
-		. esc_html__( 'Protected by', 'wp-mail-validator' )
-		. ': <a href="https://wordpress.org/plugins/wp-mail-validator/" target="_blank" rel="noopener">' . esc_html__( 'Mail Validator', 'wp-mail-validator' ) . '</a> - <strong>'
-		. esc_html( wp_mail_validator_fended_spam_attack_count() )
-		. '</strong> ' . esc_html__( 'spam attacks fended', 'wp-mail-validator' ) . '!'
+		. sprintf(
+			/* translators: 1: link to the plugin, 2: number of blocked spam attacks. */
+			esc_html( _n( 'Protected by %1$s: %2$s spam attack blocked', 'Protected by %1$s: %2$s spam attacks blocked', $count, 'wp-mail-validator' ) ),
+			$link,
+			'<strong>' . esc_html( number_format_i18n( $count ) ) . '</strong>'
+		)
 		. $string_after;
 }
 
@@ -342,7 +347,7 @@ function wp_mail_validator_sanitize_patterns( $value ) {
 			'invalid_user_defined_blacklist',
 			sprintf(
 				/* translators: %s: comma-separated list of invalid entries. */
-				__( 'These blacklist entries are no valid regular expressions and were removed: %s', 'wp-mail-validator' ),
+				__( 'These blocklist entries are not valid regular expressions and were removed: %s', 'wp-mail-validator' ),
 				esc_html( implode( ', ', $invalid ) )
 			)
 		);
@@ -371,7 +376,7 @@ function wp_mail_validator_switch_row( $options, $key, $label, $description ) {
 	$name = WP_MAIL_VALIDATOR_OPTION . '[' . $key . ']';
 	?>
 	<tr>
-		<th scope="row"><?php echo esc_html( $label ); ?>:</th>
+		<th scope="row"><?php echo esc_html( $label ); ?></th>
 		<td>
 			<fieldset>
 				<legend class="screen-reader-text"><?php echo esc_html( $label ); ?></legend>
@@ -395,55 +400,62 @@ function wp_mail_validator_options_page() {
 	$options = wp_mail_validator_get_options();
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Settings', 'wp-mail-validator' ); ?></h1>
+		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'wp_mail_validator' ); ?>
-			<h2><?php esc_html_e( 'Comment validation', 'wp-mail-validator' ); ?></h2>
+			<h2><?php esc_html_e( 'Checks', 'wp-mail-validator' ); ?></h2>
+			<p><?php esc_html_e( 'The checks apply to comments of visitors who are not logged in, and to registrations if they are turned on below. Comments are only checked if "Comment author must fill out name and email" is enabled under Settings → Discussion.', 'wp-mail-validator' ); ?></p>
 			<table class="form-table" role="presentation">
 				<?php
 				wp_mail_validator_switch_row(
 					$options,
 					'check_mailbox',
-					__( 'Verify mailbox on the mail server', 'wp-mail-validator' ),
-					__( 'Ask the mail server (port 25) whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; if the server does not answer clearly, the comment passes. No mail is sent.', 'wp-mail-validator' )
+					__( 'Check the mailbox', 'wp-mail-validator' ),
+					__( 'Ask the mail server of the address (port 25) whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; if the server does not answer clearly, the address is accepted. No email is sent.', 'wp-mail-validator' )
 					. ' <strong>' . ( ( new WP_Mail_Validator_Checker() )->port_25_open()
-						? __( 'Status: this server can reach mail servers.', 'wp-mail-validator' )
-						: __( 'Status: your hosting provider blocks outgoing connections on port 25, so the mailbox check is skipped.', 'wp-mail-validator' ) )
+						? __( 'Status: this server can reach other mail servers.', 'wp-mail-validator' )
+						: __( 'Status: your hosting provider blocks outgoing connections on port 25, so this check is skipped.', 'wp-mail-validator' ) )
 					. '</strong>'
 				);
 				wp_mail_validator_switch_row(
 					$options,
 					'use_trashmail_service_blacklist',
-					__( 'Reject mail-adresses from trashmail services', 'wp-mail-validator' ),
+					__( 'Block disposable email addresses', 'wp-mail-validator' ),
 					sprintf(
-						/* translators: %s: number of known disposable mail domains. */
-						__( 'Reject mail-addresses from %s known disposable mail services. The list is updated with every plugin release; add your own entries to the blacklist below.', 'wp-mail-validator' ),
+						/* translators: %s: number of known disposable email services. */
+						__( 'Reject addresses of %s known disposable email services. The list is updated with every plugin release; add your own entries to the blocklist below.', 'wp-mail-validator' ),
 						number_format_i18n( count( wp_mail_validator_disposable_domains() ) )
 					)
 				);
-				wp_mail_validator_switch_row( $options, 'use_user_defined_blacklist', __( 'Reject mail-adresses from user-defined blacklist', 'wp-mail-validator' ), __( 'Choose to reject mail-addresses from a user-defined blacklist <strong>(single entry per line)</strong>', 'wp-mail-validator' ) );
+				wp_mail_validator_switch_row( $options, 'use_user_defined_blacklist', __( 'Use your own blocklist', 'wp-mail-validator' ), __( 'Reject addresses that match an entry of the blocklist below.', 'wp-mail-validator' ) );
+				$entries = count( wp_mail_validator_split_lines( $options['user_defined_blacklist'] ) );
 				?>
 				<tr>
-					<th scope="row"><label for="user_defined_blacklist"><?php esc_html_e( 'Blacklist', 'wp-mail-validator' ); ?></label></th>
+					<th scope="row"><label for="user_defined_blacklist"><?php esc_html_e( 'Blocklist', 'wp-mail-validator' ); ?></label></th>
 					<td>
 						<textarea id="user_defined_blacklist" name="<?php echo esc_attr( WP_MAIL_VALIDATOR_OPTION ); ?>[user_defined_blacklist]" rows="15" cols="40" class="code"><?php echo esc_textarea( $options['user_defined_blacklist'] ); ?></textarea>
 						<p class="description">
-							<?php echo esc_html( number_format_i18n( count( wp_mail_validator_split_lines( $options['user_defined_blacklist'] ) ) ) . ' ' . __( 'Entries', 'wp-mail-validator' ) ); ?><br />
-							<?php esc_html_e( 'Each line is a regular expression, matched case-insensitively against the whole mail-address.', 'wp-mail-validator' ); ?>
+							<?php
+							/* translators: %s: number of entries in the blocklist. */
+							echo esc_html( sprintf( _n( '%s entry', '%s entries', $entries, 'wp-mail-validator' ), number_format_i18n( $entries ) ) );
+							?>
+							<br />
+							<?php esc_html_e( 'One regular expression per line, matched case-insensitively against the whole email address, for example:', 'wp-mail-validator' ); ?>
+							<code>@example\.com$</code>
 						</p>
 					</td>
 				</tr>
 			</table>
-			<h2><?php esc_html_e( 'Ping validation', 'wp-mail-validator' ); ?></h2>
+			<h2><?php esc_html_e( 'Pingbacks and trackbacks', 'wp-mail-validator' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<?php
-				wp_mail_validator_switch_row( $options, 'accept_pingbacks', __( 'Validate pingbacks', 'wp-mail-validator' ), __( 'Choose to accept Pingbacks <strong>(Pingbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', 'wp-mail-validator' ) );
-				wp_mail_validator_switch_row( $options, 'accept_trackbacks', __( 'Validate trackbacks', 'wp-mail-validator' ), __( 'Choose to accept Trackbacks <strong>(Trackbacks might be a security risk, because they\'re not carrying a mail-address to validate)</strong>', 'wp-mail-validator' ) );
+				wp_mail_validator_switch_row( $options, 'accept_pingbacks', __( 'Accept pingbacks', 'wp-mail-validator' ), __( 'Pingbacks carry no email address that could be checked. Choose No to move them to the trash.', 'wp-mail-validator' ) );
+				wp_mail_validator_switch_row( $options, 'accept_trackbacks', __( 'Accept trackbacks', 'wp-mail-validator' ), __( 'Trackbacks carry no email address that could be checked. Choose No to move them to the trash.', 'wp-mail-validator' ) );
 				?>
 			</table>
-			<h2><?php esc_html_e( 'Registrants validation', 'wp-mail-validator' ); ?></h2>
+			<h2><?php esc_html_e( 'Registrations', 'wp-mail-validator' ); ?></h2>
 			<table class="form-table" role="presentation">
-				<?php wp_mail_validator_switch_row( $options, 'check_registrations', __( 'Validate user-registrations', 'wp-mail-validator' ), __( 'Choose to validate registrants mail-address', 'wp-mail-validator' ) ); ?>
+				<?php wp_mail_validator_switch_row( $options, 'check_registrations', __( 'Check registrations', 'wp-mail-validator' ), __( 'Apply the checks to the email address of new users. A registration with an address that fails is refused.', 'wp-mail-validator' ) ); ?>
 			</table>
 			<?php submit_button(); ?>
 		</form>
@@ -453,12 +465,12 @@ function wp_mail_validator_options_page() {
 		<div class="card">
 			<p>
 				<?php esc_html_e( 'Version', 'wp-mail-validator' ); ?>: <strong><?php echo esc_html( WP_MAIL_VALIDATOR_VERSION ); ?></strong> |
-				<?php esc_html_e( 'Spam attacks fended', 'wp-mail-validator' ); ?>: <strong><?php echo esc_html( number_format_i18n( wp_mail_validator_fended_spam_attack_count() ) ); ?></strong>
+				<?php esc_html_e( 'Spam attacks blocked', 'wp-mail-validator' ); ?>: <strong><?php echo esc_html( number_format_i18n( wp_mail_validator_fended_spam_attack_count() ) ); ?></strong>
 			</p>
 			<p>
-				<a href="https://github.com/kimpenhaus/wp-mail-validator#readme"><?php esc_html_e( 'Documentation', 'wp-mail-validator' ); ?></a> |
+				<a href="https://github.com/kimpenhaus/mail-validator#readme"><?php esc_html_e( 'Documentation', 'wp-mail-validator' ); ?></a> |
 				<a href="https://wordpress.org/support/plugin/wp-mail-validator/"><?php esc_html_e( 'Support', 'wp-mail-validator' ); ?></a> |
-				<a href="https://github.com/kimpenhaus/wp-mail-validator/issues"><?php esc_html_e( 'Issue Tracker', 'wp-mail-validator' ); ?></a>
+				<a href="https://github.com/kimpenhaus/mail-validator/issues"><?php esc_html_e( 'Issue Tracker', 'wp-mail-validator' ); ?></a>
 			</p>
 		</div>
 	</div>

@@ -4,30 +4,30 @@ Tags: anti-spam, comments, email validation, disposable email, registration
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Stops comment and registration spam by validating mail-addresses: syntax, mail server, mailbox, disposable mail services and your own blacklist.
+Stops comment and registration spam from disposable and fake email addresses: syntax, mail server, mailbox, disposable email services and your own blocklist.
 
 == Description ==
 
-Mail Validator (formerly WP-Mail-Validator) checks the mail-address of everyone who comments on your blog (and, optionally, registers). Comments with an address that fails a check are moved to spam for moderation, registrations are refused.
+Mail Validator (formerly WP-Mail-Validator) checks the email address of everyone who comments on your site and, if you like, of everyone who registers. A comment with an address that fails a check is moved to spam for moderation; a registration is refused.
 
 Checks, in this order:
 
-1. **Your blacklist** – your own list of regular expressions, e.g. `@spam\.example$`.
-2. **Disposable mail services** – more than 10,000 known throw-away domains (mailinator, 10minutemail, …), updated with every plugin release.
+1. **Your blocklist** – your own list of regular expressions, for example `@spam\.example$`.
+2. **Disposable email services** – more than 10,000 known throw-away domains (mailinator, 10minutemail, …), updated with every plugin release.
 3. **Syntax** – the address must be well-formed.
 4. **Mail server** – the domain must have a mail server (MX record) or at least an address record.
 5. **Mailbox** – asks the mail server whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; servers that accept any address (catch-all), greylist or refuse to answer never cause false positives. Results are cached, and the check is skipped automatically if your host blocks port 25.
 
-Comments of logged-in users are never checked. Pingbacks and trackbacks carry no mail-address; you can choose to accept or drop them.
+Comments of logged-in users are never checked. Pingbacks and trackbacks carry no email address; you can choose to accept them or move them to the trash.
 
 = Theme functions =
 
-* `wp_mail_validator_info_label( $before, $after )` – a "protected by" label with the number of fended spam attacks
-* `wp_mail_validator_fended_spam_attack_count()` – the number of fended spam attacks
+* `wp_mail_validator_info_label( $before, $after )` – a "protected by" label with the number of blocked spam attacks
+* `wp_mail_validator_fended_spam_attack_count()` – the number of blocked spam attacks
 * `wp_mail_validator_version()` – the plugin version
 
 = External services =
@@ -35,8 +35,8 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks carry no
 To validate an address, the plugin connects to the mail infrastructure of the **commenter's** domain:
 
 * **DNS** – it looks up the MX, A and AAAA records of the domain, using your server's resolver.
-* **SMTP** (only if "Verify mailbox on the mail server" is on) – it connects to the domain's mail server on port 25 and asks whether it accepts mail for the address and for a random address at the same domain (to detect servers that accept anything). The mail server receives your site's host name and the addresses being checked. No mail is sent.
-* **Port test** (only if "Verify mailbox on the mail server" is on) – at most once a day it opens a connection to the mail server of gmail.com on port 25 and closes it right after the greeting, to find out whether your host allows outgoing SMTP connections. No data is transmitted.
+* **SMTP** (only if "Check the mailbox" is on) – it connects to the domain's mail server on port 25 and asks whether it accepts email for the address and for a random address at the same domain (to detect servers that accept anything). The mail server receives your site's host name and the addresses being checked. No email is sent.
+* **Port test** (only if "Check the mailbox" is on) – at most once a day it opens a connection to the mail server of gmail.com on port 25 and closes it right after the greeting, to find out whether your host allows outgoing SMTP connections. No data is transmitted.
 
 No data is sent to the plugin author or any other third party.
 
@@ -63,9 +63,14 @@ From the community-maintained [disposable-email-domains](https://github.com/disp
 
 = How do I block additional domains? =
 
-Add them to the blacklist in the settings, one regular expression per line, e.g. `@spam\.example$`. Entries you had added to the trashmail list of earlier versions were moved there automatically.
+Turn on *Use your own blocklist* in the settings and add one regular expression per line, for example `@spam\.example$`. Entries you had added to the trashmail list of earlier versions were moved there automatically.
 
 == Changelog ==
+
+= 0.7.2 =
+* Improved: clearer texts on the settings page, in messages and on the plugin page, ready for translation – e.g. "blocklist" instead of "blacklist", "Accept pingbacks" instead of "Validate pingbacks", plural forms for numbers
+* Changed: new wording for the registration error and for the "protected by" label of the theme function
+* Changed: the GitHub repository moved to github.com/kimpenhaus/mail-validator
 
 = 0.7.1 =
 * Changed: new name "Mail Validator – Disposable & Fake Address Blocker" (formerly WP-Mail-Validator); the settings are now under *Settings → Mail Validator*

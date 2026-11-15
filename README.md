@@ -3,10 +3,10 @@
 [![WordPress.org version](https://img.shields.io/wordpress/plugin/v/wp-mail-validator?label=wordpress.org)](https://wordpress.org/plugins/wp-mail-validator/)
 [![Tested up to](https://img.shields.io/wordpress/plugin/tested/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
 [![PHP](https://img.shields.io/wordpress/plugin/required-php/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
-[![CI](https://github.com/kimpenhaus/wp-mail-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/kimpenhaus/wp-mail-validator/actions/workflows/ci.yml)
+[![CI](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml)
 [![License: GPL v2 or later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 
-A WordPress anti-spam plugin that validates the mail-address of commenters and registrants. Comments that fail are moved to spam, registrations are refused.
+A WordPress anti-spam plugin that checks the email address of commenters and registrants. Comments that fail are moved to spam, registrations are refused. Formerly WP-Mail-Validator.
 
 **Install it from [WordPress.org](https://wordpress.org/plugins/wp-mail-validator/).** This repository is where it is developed.
 
@@ -14,7 +14,7 @@ A WordPress anti-spam plugin that validates the mail-address of commenters and r
 
 | # | Check | Details |
 |---|-------|---------|
-| 1 | Your blacklist | Regular expressions, one per line, matched case-insensitively |
+| 1 | Your blocklist | Regular expressions, one per line, matched case-insensitively |
 | 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly |
 | 3 | Syntax | WordPress' `is_email()` |
 | 4 | Mail server | MX record, or A/AAAA record as fallback ([RFC 5321](https://www.rfc-editor.org/rfc/rfc5321#section-5.1)); null MX is rejected |
@@ -25,7 +25,7 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks can be a
 ## Theme functions
 
 ```php
-echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by: Mail Validator - <strong>42</strong> spam attacks fended!</p>
+echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by <a …>Mail Validator</a>: <strong>42</strong> spam attacks blocked</p>
 echo wp_mail_validator_fended_spam_attack_count();  // 42
 echo wp_mail_validator_version();                   // 0.7.0
 ```
