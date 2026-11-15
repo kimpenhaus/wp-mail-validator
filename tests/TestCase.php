@@ -68,6 +68,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 					return true;
 				},
 				'get_current_user_id' => 0,
+				'number_format_i18n' => static function ( $number ) {
+					return number_format( (float) $number );
+				},
 				'home_url'        => 'https://blog.example',
 				'wp_parse_url'    => static function ( $url, $component = -1 ) {
 					return parse_url( $url, $component ); // phpcs:ignore

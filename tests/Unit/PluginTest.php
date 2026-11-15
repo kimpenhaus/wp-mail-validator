@@ -293,10 +293,15 @@ class PluginTest extends TestCase {
 	 */
 
 	public function test_info_label_contains_name_and_counter() {
-		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 7;
+		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 1234;
 		$label = wp_mail_validator_info_label( '<p>', '</p>' );
-		$this->assertStringContainsString( '>Mail Validator</a>', $label );
-		$this->assertStringContainsString( '<strong>7</strong>', $label );
+		$this->assertStringStartsWith( '<p>Protected by <a href="https://wordpress.org/plugins/wp-mail-validator/"', $label );
+		$this->assertStringContainsString( '>Mail Validator</a>: <strong>1,234</strong> spam attacks blocked</p>', $label );
+	}
+
+	public function test_info_label_uses_the_singular_for_one_attack() {
+		$this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] = 1;
+		$this->assertStringEndsWith( '<strong>1</strong> spam attack blocked', wp_mail_validator_info_label() );
 	}
 
 	/*

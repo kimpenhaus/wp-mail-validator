@@ -2,7 +2,7 @@
 
 Thanks for helping to improve Mail Validator!
 
-- **Bugs & ideas:** open an [issue](https://github.com/kimpenhaus/wp-mail-validator/issues/new/choose).
+- **Bugs & ideas:** open an [issue](https://github.com/kimpenhaus/mail-validator/issues/new/choose).
 - **Usage questions:** use the [WordPress.org support forum](https://wordpress.org/support/plugin/wp-mail-validator/).
 - **Security issues:** see [SECURITY.md](SECURITY.md) – please report privately.
 

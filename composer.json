@@ -1,5 +1,5 @@
 {
-    "name": "kimpenhaus/wp-mail-validator",
+    "name": "kimpenhaus/mail-validator",
     "description": "WordPress anti-spam plugin that validates the mail-address of commenters and registrants.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",

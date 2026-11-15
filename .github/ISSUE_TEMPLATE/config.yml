@@ -4,5 +4,5 @@ contact_links:
     url: https://wordpress.org/support/plugin/wp-mail-validator/
     about: Questions about setup and usage.
   - name: Report a security vulnerability
-    url: https://github.com/kimpenhaus/wp-mail-validator/security/advisories/new
+    url: https://github.com/kimpenhaus/mail-validator/security/advisories/new
     about: Please report security issues privately, not as a public issue.
