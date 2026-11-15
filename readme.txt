@@ -4,11 +4,11 @@ Tags: anti-spam, comments, email validation, disposable email, registration
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.2
+Stable tag: 0.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Stops comment and registration spam from disposable and fake email addresses: syntax, mail server, mailbox, disposable email services and your own blocklist.
+Stops comment and registration spam from disposable and fake email addresses: checks syntax, mail server, mailbox and your own blocklist.
 
 == Description ==
 
@@ -66,6 +66,9 @@ From the community-maintained [disposable-email-domains](https://github.com/disp
 Turn on *Use your own blocklist* in the settings and add one regular expression per line, for example `@spam\.example$`. Entries you had added to the trashmail list of earlier versions were moved there automatically.
 
 == Changelog ==
+
+= 0.7.3 =
+* Fixed: the short description on the plugin page was cut off
 
 = 0.7.2 =
 * Improved: clearer texts on the settings page, in messages and on the plugin page, ready for translation – e.g. "blocklist" instead of "blacklist", "Accept pingbacks" instead of "Validate pingbacks", plural forms for numbers
