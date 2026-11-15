@@ -4,7 +4,7 @@ Tags: anti-spam, comments, email validation, disposable email, registration
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,10 @@ Add them to the blacklist in the settings, one regular expression per line, e.g.
 
 == Changelog ==
 
+= 0.7.1 =
+* Changed: new name "Mail Validator – Disposable & Fake Address Blocker" (formerly WP-Mail-Validator); the settings are now under *Settings → Mail Validator*
+* Improved: the settings menu entry can be translated
+
 = 0.7.0 =
 * Fixed: fatal error on PHP 8
 * Fixed: the bundled trashmail list was never loaded
@@ -118,6 +122,9 @@ Add them to the blacklist in the settings, one regular expression per line, e.g.
 * added optional rejection of trackbacks
 
 == Upgrade Notice ==
+
+= 0.7.1 =
+WP-Mail-Validator is now called Mail Validator. Settings and behaviour are unchanged.
 
 = 0.7.0 =
 Fixes a fatal error on PHP 8 and secures the settings page, which is now restricted to administrators. Requires PHP 7.4.
