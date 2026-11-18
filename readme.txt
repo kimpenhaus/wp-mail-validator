@@ -153,6 +153,9 @@ Turn on *Use your own blocklist* in the settings and add one regular expression 
 
 == Upgrade Notice ==
 
+= 0.8.0 =
+Comments are now checked in the background and may show as pending for a few seconds; turn this off under Settings → Mail Validator. New checks for WooCommerce accounts, multisite sign-ups and Contact Form 7 forms.
+
 = 0.7.1 =
 WP-Mail-Validator is now called Mail Validator. Settings and behaviour are unchanged.
 
