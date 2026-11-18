@@ -43,6 +43,13 @@ jobs:
       - run: composer install --no-interaction --no-progress
       - run: composer lint
 
+  versions:
+    name: Version numbers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - run: .github/scripts/check-versions.sh
+
   plugin-check:
     name: Plugin Check (WordPress.org)
     runs-on: ubuntu-latest

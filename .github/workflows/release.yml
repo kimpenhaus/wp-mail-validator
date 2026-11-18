@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - release-please--branches--main # the release pull request
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  release-please:
+    # Opens and updates the release pull request; merging it creates the tag and the GitHub release,
+    # which starts the deployment to WordPress.org (deploy.yml).
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      # As a GitHub App, release-please's pull requests and releases trigger workflows: the CI runs on
+      # the release pull request, and the published release starts the deployment.
+      - id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          # Rebasing the release branch onto main fails without it when main changed a workflow
+          # (e.g. Renovate updating a pinned action).
+          permission-workflows: write
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  sync-readme:
+    # readme.txt cannot carry release-please's version markers (WordPress.org would show them), so this
+    # sets "Stable tag" and copies the changelog there whenever the release pull request changes.
+    if: ${{ github.ref == 'refs/heads/release-please--branches--main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - run: python3 -I .github/scripts/sync-readme.py
+      - name: Commit readme.txt
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BOT: ${{ steps.app-token.outputs.app-slug }}[bot]
+        run: |
+          git diff --quiet && exit 0
+          git config user.name "$BOT"
+          git config user.email "$(gh api "/users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          git commit -am "chore: sync readme.txt with the release"
+          git push
