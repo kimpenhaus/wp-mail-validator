@@ -10,7 +10,8 @@ Thanks for helping to improve Mail Validator!
 
 1. Fork the repository and create a branch from the default branch.
    Name the pull request in the [Conventional Commits](https://www.conventionalcommits.org/) style
-   (`feat: …`, `fix: …`, `docs: …`): its title becomes the changelog entry.
+   (`feat: …`, `fix: …`, `docs: …`): its title becomes the changelog entry. A check fails
+   if it does not.
 2. Keep changes focused – one topic per pull request.
 3. Follow the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/):
    sanitize all input, escape all output, use nonces and capability checks for admin actions.
