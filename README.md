@@ -68,7 +68,7 @@ Releases are made by [release-please](https://github.com/googleapis/release-plea
 
 CI checks that all version numbers agree (`.github/scripts/check-versions.sh`). The upgrade notice in `readme.txt` is still written by hand, in the release pull request.
 
-Banners, icons and screenshots for the plugin page go into `.wordpress-org/` (`banner-1544x500.png`, `icon-256x256.png`, `screenshot-1.png`, …); the deploy workflow uploads them to SVN `assets/`.
+Banners, icons and screenshots for the plugin page go into `.wordpress-org/` (`banner-1544x500.png`, `icon-256x256.png`, `screenshot-1.png`, …); the deploy workflow uploads them to SVN `assets/`. Sources and the render command for banner and icon are in `assets-src/`.
 
 ## Contributing
 

@@ -69,6 +69,12 @@ From the community-maintained [disposable-email-domains](https://github.com/disp
 
 Turn on *Use your own blocklist* in the settings and add one regular expression per line, for example `@spam\.example$`. Entries you had added to the trashmail list of earlier versions were moved there automatically.
 
+== Screenshots ==
+
+1. The settings: which checks run, the mailbox check in the background, your own blocklist, registrations and contact forms.
+2. A Contact Form 7 form refuses a disposable email address.
+3. A registration with a disposable email address is refused.
+
 == Changelog ==
 
 = 0.7.3 =
