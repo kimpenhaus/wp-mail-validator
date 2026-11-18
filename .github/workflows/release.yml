@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - release-please--branches--main # the release pull request
+      - release-please--branches--main** # the release pull request (…--components--wp-mail-validator)
 
 permissions:
   contents: read
@@ -40,7 +40,7 @@ jobs:
   sync-readme:
     # readme.txt cannot carry release-please's version markers (WordPress.org would show them), so this
     # sets "Stable tag" and copies the changelog there whenever the release pull request changes.
-    if: ${{ github.ref == 'refs/heads/release-please--branches--main' }}
+    if: ${{ startsWith(github.ref, 'refs/heads/release-please--branches--main') }}
     runs-on: ubuntu-latest
     steps:
       - id: app-token
@@ -61,5 +61,5 @@ jobs:
           git diff --quiet && exit 0
           git config user.name "$BOT"
           git config user.email "$(gh api "/users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
-          git commit -am "chore: sync readme.txt with the release"
+          git commit -am "chore(release): sync readme.txt"
           git push
