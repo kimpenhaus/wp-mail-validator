@@ -1,3 +1,5 @@
+<img src=".wordpress-org/icon.svg" alt="Mail Validator icon: an envelope with a check mark" width="96" align="right">
+
 # Mail Validator
 
 [![WordPress.org version](https://img.shields.io/wordpress/plugin/v/wp-mail-validator?label=wordpress.org)](https://wordpress.org/plugins/wp-mail-validator/)
