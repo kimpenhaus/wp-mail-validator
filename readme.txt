@@ -4,7 +4,7 @@ Tags: anti-spam, comments, email validation, disposable email, registration
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.3
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,10 @@ Turn on *Use your own blocklist* in the settings and add one regular expression 
 
 == Changelog ==
 
+= 0.8.0 =
+* New: check WooCommerce accounts, multisite sign-ups and Contact Form 7 forms (#18)
+* New: run the mailbox check for comments in the background (#17)
+
 = 0.7.3 =
 * Fixed: the short description on the plugin page was cut off
 
@@ -148,6 +152,9 @@ Turn on *Use your own blocklist* in the settings and add one regular expression 
 * added optional rejection of trackbacks
 
 == Upgrade Notice ==
+
+= 0.8.0 =
+Comments are now checked in the background and may show as pending for a few seconds; turn this off under Settings → Mail Validator. New checks for WooCommerce accounts, multisite sign-ups and Contact Form 7 forms.
 
 = 0.7.1 =
 WP-Mail-Validator is now called Mail Validator. Settings and behaviour are unchanged.
