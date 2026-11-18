@@ -36,8 +36,8 @@ jobs:
       - uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           branch: chore/update-disposable-domains
-          commit-message: 'chore: update disposable domain list'
-          title: 'chore: update disposable domain list'
+          commit-message: 'chore(data): update disposable domain list'
+          title: 'chore(data): update disposable domain list'
           body: |
             Monthly update from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) (CC0), now ${{ env.COUNT }} domains.
 

@@ -31,3 +31,19 @@ jobs:
             refactor
             build
             style
+          # Every title names the part it changes, e.g. "feat(integrations): …". Add new parts here.
+          requireScope: true
+          scopes: |
+            checker
+            comments
+            registration
+            integrations
+            settings
+            blocklist
+            data
+            i18n
+            readme
+            assets
+            release
+            ci
+            deps
