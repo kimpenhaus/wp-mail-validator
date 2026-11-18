@@ -50,16 +50,16 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
       - run: python3 -I .github/scripts/sync-readme.py
       - name: Commit readme.txt
+        # Through the API as the app, so GitHub signs the commit; a git push from here would be unsigned.
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          BOT: ${{ steps.app-token.outputs.app-slug }}[bot]
+          BRANCH: ${{ github.ref_name }}
         run: |
           git diff --quiet && exit 0
-          git config user.name "$BOT"
-          git config user.email "$(gh api "/users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
-          git commit -am "chore(release): sync readme.txt"
-          git push
+          gh api -X PUT "repos/${GITHUB_REPOSITORY}/contents/readme.txt" --silent \
+            -f message="chore(release): sync readme.txt" \
+            -f content="$(base64 -w0 readme.txt)" \
+            -f sha="$(git rev-parse HEAD:readme.txt)" \
+            -f branch="$BRANCH"
