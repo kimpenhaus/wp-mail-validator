@@ -20,7 +20,7 @@ body:
       label: Steps to reproduce
       placeholder: |
         1. Enable "…" in Settings → Mail Validator
-        2. Post a comment with the address "…"
+        2. Post a comment (or register, or send a form) with the address "…"
         3. …
     validations:
       required: true
@@ -28,7 +28,7 @@ body:
     id: plugin-version
     attributes:
       label: Plugin version
-      placeholder: "0.6.5"
+      placeholder: "0.7.3"
     validations:
       required: true
   - type: input

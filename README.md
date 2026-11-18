@@ -6,7 +6,7 @@
 [![CI](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml)
 [![License: GPL v2 or later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 
-A WordPress anti-spam plugin that checks the email address of commenters and registrants. Comments that fail are moved to spam, registrations are refused. Formerly WP-Mail-Validator.
+A WordPress anti-spam plugin that checks the email address of commenters, registrants (also WooCommerce and multisite) and Contact Form 7 senders. Comments that fail are moved to spam, registrations and forms are refused. Formerly WP-Mail-Validator.
 
 **Install it from [WordPress.org](https://wordpress.org/plugins/wp-mail-validator/).** This repository is where it is developed.
 
@@ -15,14 +15,37 @@ A WordPress anti-spam plugin that checks the email address of commenters and reg
 | # | Check | Details |
 |---|-------|---------|
 | 1 | Your blocklist | Regular expressions, one per line, matched case-insensitively |
-| 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly |
+| 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly in this repository and shipped with every release |
 | 3 | Syntax | WordPress' `is_email()` |
 | 4 | Mail server | MX record, or A/AAAA record as fallback ([RFC 5321](https://www.rfc-editor.org/rfc/rfc5321#section-5.1)); null MX is rejected |
 | 5 | Mailbox *(optional)* | SMTP `RCPT TO` on port 25, no mail is sent. Rejects only on `5.1.1`/`5.1.10` (recipient unknown); detects catch-all servers, caches results, skips itself when port 25 is blocked. For comments it runs in the background via WP-Cron by default: the comment is held as pending until the check is done |
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks can be accepted or dropped.
 
-## Theme functions
+## Integrations
+
+| Plugin | What is checked | Setting | Hook |
+|--------|-----------------|---------|------|
+| WooCommerce | New customer accounts (My account, checkout) | *Check registrations* | `woocommerce_registration_errors` |
+| Multisite | Sign-ups on `wp-signup.php` | *Check registrations* | `wpmu_validate_user_signup` |
+| Contact Form 7 | All email fields | *Check Contact Form 7* (off by default, shown if CF7 is active) | `wpcf7_validate_email`, `wpcf7_validate_email*` |
+
+Each integration is a small file in `includes/integrations/`. Forms cannot be held like comments, so with *Check the mailbox in the background* on, they only use mailbox results that are cached; registrations are always checked completely.
+
+## Functions for themes and plugins
+
+Check addresses in your own forms – with the checks and settings of the plugin:
+
+```php
+// Safe to call when the plugin is not active: returns true then.
+if ( ! apply_filters( 'wp_mail_validator_is_valid_email', true, $email ) ) {
+	// refuse the address
+}
+
+wp_mail_validator_is_valid_email( $email ); // the same as a function
+```
+
+Rejected addresses are counted as blocked spam attacks. For themes:
 
 ```php
 echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by <a …>Mail Validator</a>: <strong>42</strong> spam attacks blocked</p>
@@ -52,6 +75,7 @@ docker run --rm -v "$PWD":/app -w /app php:8.4-cli vendor/bin/phpunit
 |------|---------|
 | `wp-mail-validator.php` | Hooks, options, settings page |
 | `includes/class-wp-mail-validator-checker.php` | Syntax, DNS and SMTP checks |
+| `includes/integrations/` | WooCommerce, Multisite, Contact Form 7 |
 | `data/disposable-email-domains.txt` | Bundled disposable domain list |
 | `readme.txt` | Plugin page on WordPress.org – keep it in sync with releases |
 | `.distignore` | Files that are **not** shipped to WordPress.org |
