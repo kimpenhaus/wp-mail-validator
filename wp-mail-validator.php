@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/kimpenhaus/mail-validator
  * Description:       Blocks comment, registration and contact form spam from disposable and fake email addresses: checks the syntax, the mail server and the mailbox, known disposable email services and your own blocklist.
  * x-release-please-start-version
- * Version:           0.7.3
+ * Version:           0.8.0
  * x-release-please-end
  * Requires at least: 6.0
  * Requires PHP:      7.4
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WP_MAIL_VALIDATOR_VERSION', '0.7.3' ); // Bumped by release-please (x-release-please-version).
+define( 'WP_MAIL_VALIDATOR_VERSION', '0.8.0' ); // Bumped by release-please (x-release-please-version).
 define( 'WP_MAIL_VALIDATOR_OPTION', 'wp_mail_validator_options' );
 define( 'WP_MAIL_VALIDATOR_COUNTER_OPTION', 'wp_mail_validator_eaten_spam' );
 define( 'WP_MAIL_VALIDATOR_VERSION_OPTION', 'wp_mail_validator_version' );

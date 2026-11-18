@@ -2,6 +2,14 @@
 
 All notable changes to Mail Validator (formerly WP-Mail-Validator). The plugin page on WordPress.org shows the same entries in `readme.txt`.
 
+## [0.8.0](https://github.com/kimpenhaus/mail-validator/compare/0.7.3...0.8.0) (2026-11-18)
+
+
+### New
+
+* **integrations:** check WooCommerce accounts, multisite sign-ups and Contact Form 7 forms ([#18](https://github.com/kimpenhaus/mail-validator/issues/18)) ([ccb358c](https://github.com/kimpenhaus/mail-validator/commit/ccb358c27ff25055321801c276943f0dfe5d3778))
+* run the mailbox check for comments in the background ([#17](https://github.com/kimpenhaus/mail-validator/issues/17)) ([3e9f442](https://github.com/kimpenhaus/mail-validator/commit/3e9f442c15c9d1523ce84a3d9984fb91da119f48))
+
 ## 0.7.3 (2026-11-15)
 
 * Fixed: the short description on the plugin page was cut off
