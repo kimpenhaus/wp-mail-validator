@@ -1,4 +1,4 @@
-# Mail Validator
+# <img src=".wordpress-org/icon.svg" alt="" width="48" align="absmiddle"> Mail Validator
 
 [![WordPress.org version](https://img.shields.io/wordpress/plugin/v/wp-mail-validator?label=wordpress.org)](https://wordpress.org/plugins/wp-mail-validator/)
 [![Tested up to](https://img.shields.io/wordpress/plugin/tested/wp-mail-validator)](https://wordpress.org/plugins/wp-mail-validator/)
