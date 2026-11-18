@@ -1,27 +1,27 @@
 name: Deploy to WordPress.org
 
 on:
-  push:
-    tags: ['*.*.*']
+  # Every published release: by release-please (release.yml) or by hand.
+  release:
+    types: [published]
 
 permissions:
   contents: write # attach the zip to the GitHub release
 
 jobs:
   deploy:
-    name: Deploy ${{ github.ref_name }}
+    name: Deploy ${{ github.event.release.tag_name }}
     runs-on: ubuntu-latest
     environment: wordpress.org
+    env:
+      TAG: ${{ github.event.release.tag_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.TAG }}
 
       - name: Check that the tag matches the plugin version
-        run: |
-          tag="${GITHUB_REF_NAME}"
-          header=$(sed -n 's/^ \* Version: *//p' wp-mail-validator.php)
-          stable=$(sed -n 's/^Stable tag: *//p' readme.txt)
-          echo "tag=$tag header=$header stable=$stable"
-          test "$tag" = "$header" && test "$tag" = "$stable"
+        run: .github/scripts/check-versions.sh "$TAG"
 
       - name: Deploy to WordPress.org SVN
         id: deploy
@@ -32,8 +32,9 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: wp-mail-validator
+          VERSION: ${{ env.TAG }}
 
-      - name: Create GitHub release
+      - name: Attach the zip to the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "${{ steps.deploy.outputs.zip-path }}" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        run: gh release upload "$TAG" "${{ steps.deploy.outputs.zip-path }}" --clobber

@@ -9,6 +9,8 @@ Thanks for helping to improve Mail Validator!
 ## Pull requests
 
 1. Fork the repository and create a branch from the default branch.
+   Name the pull request in the [Conventional Commits](https://www.conventionalcommits.org/) style
+   (`feat: …`, `fix: …`, `docs: …`): its title becomes the changelog entry.
 2. Keep changes focused – one topic per pull request.
 3. Follow the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/):
    sanitize all input, escape all output, use nonces and capability checks for admin actions.
@@ -16,4 +18,4 @@ Thanks for helping to improve Mail Validator!
 
 ## Releases
 
-Releases are made by the maintainer: pushing a version tag (e.g. `1.2.3`) deploys the plugin to WordPress.org after manual approval.
+Releases are made by the maintainer with release-please: merging its release pull request publishes a GitHub release, which deploys the plugin to WordPress.org after manual approval.
