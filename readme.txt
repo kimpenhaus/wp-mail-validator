@@ -20,7 +20,7 @@ Checks, in this order:
 2. **Disposable email services** – more than 10,000 known throw-away domains (mailinator, 10minutemail, …), updated with every plugin release.
 3. **Syntax** – the address must be well-formed.
 4. **Mail server** – the domain must have a mail server (MX record) or at least an address record.
-5. **Mailbox** – asks the mail server whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; servers that accept any address (catch-all), greylist or refuse to answer never cause false positives. Results are cached, and the check is skipped automatically if your host blocks port 25.
+5. **Mailbox** – asks the mail server whether the mailbox exists. Only an explicit "recipient unknown" counts as spam; servers that accept any address (catch-all), greylist or refuse to answer never cause false positives. Results are cached, and the check is skipped automatically if your host blocks port 25. By default it runs in the background, so commenters never wait for a slow mail server.
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks carry no email address; you can choose to accept them or move them to the trash.
 
@@ -52,6 +52,10 @@ Comment checks only run if *Settings → Discussion → "Comment author must fil
 = Does the mailbox check work on my host? =
 
 The settings page tells you. Many hosting providers block outgoing connections on port 25; the plugin detects that and skips the mailbox check, all other checks keep working.
+
+= Why is a comment pending for a moment? =
+
+If the mailbox of an address has not been checked recently, the comment is held as pending and the mailbox is checked by WP-Cron right after the comment was sent – usually within seconds, on the next page view. If the mailbox exists, the comment gets the status it would have had anyway (approved or pending), and you are notified only then. If it does not exist, the comment goes to spam. Registrations are always checked immediately. If WP-Cron is disabled on your site, make sure a server cron job runs it, or turn off *Check the mailbox in the background*.
 
 = Which providers can the mailbox check verify? =
 

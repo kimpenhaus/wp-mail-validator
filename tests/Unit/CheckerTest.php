@@ -140,6 +140,54 @@ class CheckerTest extends TestCase {
 	}
 
 	/*
+	 * Deferred probe (background check)
+	 */
+
+	public function test_deferred_probe_is_needed_until_port_25_was_tested() {
+		$checker = new FakeNetworkChecker();
+
+		$this->assertSame( Checker::DEFERRED, $checker->validate( 'jane@example.com', true ) );
+		$this->assertSame( 0, $checker->probes );
+		$this->assertArrayNotHasKey( 'wp_mail_validator_port_25', $this->transients, 'The port test is slow, too.' );
+	}
+
+	public function test_deferred_probe_is_needed_for_uncached_address() {
+		$this->transients['wp_mail_validator_port_25'] = array( 'open', DAY_IN_SECONDS );
+		$checker = new FakeNetworkChecker();
+
+		$this->assertSame( Checker::DEFERRED, $checker->validate( 'jane@example.com', true ) );
+		$this->assertSame( 0, $checker->probes );
+	}
+
+	public function test_deferred_probe_uses_cached_results() {
+		$this->transients['wp_mail_validator_port_25'] = array( 'open', DAY_IN_SECONDS );
+		$this->transients[ 'wp_mail_validator_address_' . md5( 'jane@example.com' ) ] = array( Checker::INVALID_MAIL, DAY_IN_SECONDS );
+		$this->transients[ 'wp_mail_validator_domain_' . md5( 'catch-all.example' ) ] = array( 'catch-all', DAY_IN_SECONDS );
+		$checker = new FakeNetworkChecker();
+
+		$this->assertSame( Checker::INVALID_MAIL, $checker->validate( 'Jane@Example.com', true ) );
+		$this->assertSame( Checker::CATCH_ALL, $checker->validate( 'john@catch-all.example', true ) );
+		$this->assertSame( 0, $checker->probes );
+	}
+
+	public function test_deferred_probe_is_not_needed_when_port_25_is_blocked() {
+		$this->transients['wp_mail_validator_port_25'] = array( 'blocked', DAY_IN_SECONDS );
+		$this->assertSame( Checker::UNKNOWN, ( new FakeNetworkChecker() )->validate( 'jane@example.com', true ) );
+	}
+
+	public function test_deferred_probe_is_not_needed_when_mailbox_check_is_disabled() {
+		$this->assertSame( Checker::VALID_MAIL, ( new FakeNetworkChecker( false ) )->validate( 'jane@example.com', true ) );
+	}
+
+	public function test_fast_checks_still_reject_when_probe_is_deferred() {
+		$checker           = new FakeNetworkChecker();
+		$checker->mx_hosts = array();
+
+		$this->assertSame( Checker::SYNTAX_INCORRECT, $checker->validate( 'not an address', true ) );
+		$this->assertSame( Checker::UNKNOWN_SERVER, $checker->validate( 'jane@example.com', true ) );
+	}
+
+	/*
 	 * SMTP dialogue
 	 */
 

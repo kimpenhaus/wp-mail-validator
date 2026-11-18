@@ -6,6 +6,8 @@
  * @package WP_Mail_Validator
  */
 
+// Patchwork first, so tests can stub the plugin's own functions with Brain Monkey.
+require_once dirname( __DIR__ ) . '/vendor/antecedent/patchwork/Patchwork.php';
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 
 define( 'ABSPATH', '/tmp/wordpress/' );

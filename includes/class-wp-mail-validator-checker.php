@@ -19,11 +19,13 @@ defined( 'ABSPATH' ) || exit;
 class WP_Mail_Validator_Checker {
 
 	const VALID_MAIL       = 10;
+	const DEFERRED         = 2;   // All other checks passed; the mailbox still has to be probed (see validate()).
 	const CATCH_ALL        = 1;   // The mail server accepts any recipient, so the mailbox could not be verified.
 	const UNKNOWN          = 0;   // The mailbox could not be verified (port 25 blocked, greylisting, policy, …).
 	const INVALID_MAIL     = -10;
 	const UNKNOWN_SERVER   = -20;
 	const SYNTAX_INCORRECT = -30;
+	const BLOCKED          = -40; // On the user's blocklist or the list of disposable mail services.
 
 	const SMTP_PORT       = 25;
 	const CONNECT_TIMEOUT = 3;
@@ -71,10 +73,14 @@ class WP_Mail_Validator_Checker {
 	/**
 	 * Validates a mail-address.
 	 *
+	 * With $defer_probe, nothing slow happens: if the mailbox would have to be probed
+	 * (result not cached, or the port 25 test is due), DEFERRED is returned instead.
+	 *
 	 * @param string $mail_address Mail-address to validate.
+	 * @param bool   $defer_probe  Whether to return DEFERRED instead of probing the mailbox now.
 	 * @return int One of the class constants.
 	 */
-	public function validate( $mail_address ) {
+	public function validate( $mail_address, $defer_probe = false ) {
 		if ( ! is_email( $mail_address ) ) {
 			return self::SYNTAX_INCORRECT;
 		}
@@ -88,6 +94,10 @@ class WP_Mail_Validator_Checker {
 
 		if ( ! $this->check_mailbox ) {
 			return self::VALID_MAIL;
+		}
+
+		if ( $defer_probe ) {
+			return $this->cached_mailbox_result( strtolower( $mail_address ), $domain );
 		}
 
 		if ( ! $this->port_25_open() ) {
@@ -135,28 +145,77 @@ class WP_Mail_Validator_Checker {
 	 * @return int
 	 */
 	private function cached_probe( array $mx_hosts, $mail_address, $domain ) {
-		$domain_key  = self::TRANSIENT_PREFIX . 'domain_' . md5( $domain );
-		$address_key = self::TRANSIENT_PREFIX . 'address_' . md5( $mail_address );
-
-		if ( 'catch-all' === get_transient( $domain_key ) ) {
-			return self::CATCH_ALL;
-		}
-
-		$cached = get_transient( $address_key );
-		if ( false !== $cached ) {
-			return (int) $cached;
+		$cached = $this->cached_verdict( $mail_address, $domain );
+		if ( null !== $cached ) {
+			return $cached;
 		}
 
 		$result = $this->probe_mailbox( $mx_hosts, $mail_address );
 
 		if ( self::CATCH_ALL === $result ) {
-			set_transient( $domain_key, 'catch-all', DAY_IN_SECONDS );
+			set_transient( self::domain_key( $domain ), 'catch-all', DAY_IN_SECONDS );
 		} else {
 			// Inconclusive results may change soon (greylisting), definite ones hardly.
-			set_transient( $address_key, $result, self::UNKNOWN === $result ? HOUR_IN_SECONDS : DAY_IN_SECONDS );
+			set_transient( self::address_key( $mail_address ), $result, self::UNKNOWN === $result ? HOUR_IN_SECONDS : DAY_IN_SECONDS );
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Mailbox result without any network access.
+	 *
+	 * @param string $mail_address Lower-cased mail-address.
+	 * @param string $domain       Domain of the mail-address.
+	 * @return int The cached result, UNKNOWN if port 25 is known to be blocked, or DEFERRED.
+	 */
+	private function cached_mailbox_result( $mail_address, $domain ) {
+		$port_25 = get_transient( self::TRANSIENT_PREFIX . 'port_25' );
+
+		if ( 'blocked' === $port_25 ) {
+			return self::UNKNOWN;
+		}
+
+		$cached = 'open' === $port_25 ? $this->cached_verdict( $mail_address, $domain ) : null;
+
+		return null === $cached ? self::DEFERRED : $cached;
+	}
+
+	/**
+	 * Cached mailbox verdict for an address, or for all addresses of a catch-all domain.
+	 *
+	 * @param string $mail_address Lower-cased mail-address.
+	 * @param string $domain       Domain of the mail-address.
+	 * @return int|null
+	 */
+	private function cached_verdict( $mail_address, $domain ) {
+		if ( 'catch-all' === get_transient( self::domain_key( $domain ) ) ) {
+			return self::CATCH_ALL;
+		}
+
+		$cached = get_transient( self::address_key( $mail_address ) );
+
+		return false === $cached ? null : (int) $cached;
+	}
+
+	/**
+	 * Transient name for the catch-all flag of a domain.
+	 *
+	 * @param string $domain Domain.
+	 * @return string
+	 */
+	private static function domain_key( $domain ) {
+		return self::TRANSIENT_PREFIX . 'domain_' . md5( $domain );
+	}
+
+	/**
+	 * Transient name for the probe result of an address.
+	 *
+	 * @param string $mail_address Lower-cased mail-address.
+	 * @return string
+	 */
+	private static function address_key( $mail_address ) {
+		return self::TRANSIENT_PREFIX . 'address_' . md5( $mail_address );
 	}
 
 	/**

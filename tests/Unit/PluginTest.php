@@ -64,11 +64,13 @@ class PluginTest extends TestCase {
 	public function checker_results() {
 		return array(
 			'valid'          => array( Checker::VALID_MAIL, false ),
+			'deferred'       => array( Checker::DEFERRED, false ),
 			'catch-all'      => array( Checker::CATCH_ALL, false ),
 			'unknown'        => array( Checker::UNKNOWN, false ),
 			'invalid'        => array( Checker::INVALID_MAIL, true ),
 			'unknown server' => array( Checker::UNKNOWN_SERVER, true ),
 			'bad syntax'     => array( Checker::SYNTAX_INCORRECT, true ),
+			'blocked'        => array( Checker::BLOCKED, true ),
 		);
 	}
 
@@ -147,6 +149,152 @@ class PluginTest extends TestCase {
 		$this->set_plugin_options( array() );
 
 		$this->assertSame( 'spam', wp_mail_validator_validate_comment_mail( 1, array( 'comment_author_email' => 'bob@mailinator.com' ) ) );
+	}
+
+	/*
+	 * Mailbox check in the background
+	 */
+
+	private function guest_comment( $approved, array $options = array() ) {
+		$this->wp_options['require_name_email'] = '1';
+		$this->set_plugin_options( $options );
+
+		return wp_mail_validator_validate_comment_mail( $approved, array( 'comment_author_email' => 'bob@example.com' ) );
+	}
+
+	private function held_comment( $status = '0' ) {
+		return (object) array(
+			'comment_ID'           => '5',
+			'comment_approved'     => $status,
+			'comment_author_email' => 'bob@example.com',
+		);
+	}
+
+	public function test_comment_is_held_when_mailbox_probe_is_deferred() {
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->once()->with( 'bob@example.com', true )->andReturn( Checker::DEFERRED );
+
+		$this->assertSame( 0, $this->guest_comment( 1 ) );
+		$this->assertSame( '1', $GLOBALS['wp_mail_validator_held_comment'] );
+	}
+
+	public function test_held_comment_remembers_pending_status() {
+		Functions\when( 'wp_mail_validator_check_mail_address' )->justReturn( Checker::DEFERRED );
+
+		$this->assertSame( 0, $this->guest_comment( '0' ) );
+		$this->assertSame( '0', $GLOBALS['wp_mail_validator_held_comment'] );
+	}
+
+	public function test_mailbox_is_probed_immediately_when_background_check_is_off() {
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->once()->with( 'bob@example.com', false )->andReturn( Checker::INVALID_MAIL );
+
+		$this->assertSame( 'spam', $this->guest_comment( 1, array( 'check_mailbox_in_background' => 'no' ) ) );
+		$this->assertArrayNotHasKey( 'wp_mail_validator_held_comment', $GLOBALS );
+	}
+
+	public function test_held_comment_gets_meta_and_cron_event() {
+		$GLOBALS['wp_mail_validator_held_comment'] = '1';
+		Functions\expect( 'add_comment_meta' )->once()->with( 5, WP_MAIL_VALIDATOR_HELD_META, '1', true );
+		Functions\expect( 'wp_schedule_single_event' )->once()->with( \Mockery::type( 'int' ), WP_MAIL_VALIDATOR_CRON_HOOK, array( 5 ) );
+
+		wp_mail_validator_schedule_held_comment( 5, $this->held_comment() );
+
+		$this->assertArrayNotHasKey( 'wp_mail_validator_held_comment', $GLOBALS );
+	}
+
+	public function test_comments_not_held_by_the_plugin_are_not_scheduled() {
+		Functions\expect( 'wp_schedule_single_event' )->never();
+
+		wp_mail_validator_schedule_held_comment( 5, $this->held_comment() );
+	}
+
+	public function test_held_comment_is_not_scheduled_when_a_later_filter_changed_its_status() {
+		$GLOBALS['wp_mail_validator_held_comment'] = '1';
+		Functions\expect( 'wp_schedule_single_event' )->never();
+
+		wp_mail_validator_schedule_held_comment( 5, $this->held_comment( 'spam' ) );
+
+		$this->assertArrayNotHasKey( 'wp_mail_validator_held_comment', $GLOBALS );
+	}
+
+	public function test_moderators_are_not_notified_while_comment_is_held() {
+		Functions\when( 'metadata_exists' )->alias(
+			static function ( $type, $id ) {
+				return 5 === $id;
+			}
+		);
+
+		$this->assertFalse( wp_mail_validator_notify_moderator( true, 5 ) );
+		$this->assertTrue( wp_mail_validator_notify_moderator( true, 6 ) );
+		$this->assertFalse( wp_mail_validator_notify_moderator( false, 6 ) );
+	}
+
+	/**
+	 * Sets up the cron callback for comment 5.
+	 *
+	 * @param string $would_be Status stored in the comment meta.
+	 * @param string $status   Current comment status.
+	 * @return object Comment.
+	 */
+	private function prepare_held_comment_check( $would_be, $status = '0' ) {
+		$comment = $this->held_comment( $status );
+		Functions\when( 'get_comment' )->justReturn( $comment );
+		Functions\when( 'metadata_exists' )->justReturn( true );
+		Functions\when( 'get_comment_meta' )->justReturn( $would_be );
+		Functions\expect( 'delete_comment_meta' )->once()->with( '5', WP_MAIL_VALIDATOR_HELD_META );
+
+		return $comment;
+	}
+
+	public function test_held_comment_with_unknown_mailbox_goes_to_spam_and_is_counted() {
+		$comment = $this->prepare_held_comment_check( '1' );
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->once()->with( 'bob@example.com' )->andReturn( Checker::INVALID_MAIL );
+		Functions\expect( 'wp_spam_comment' )->once()->with( $comment );
+		Functions\expect( 'wp_set_comment_status' )->never();
+
+		wp_mail_validator_check_held_comment( 5 );
+
+		$this->assertSame( 1, $this->wp_options[ WP_MAIL_VALIDATOR_COUNTER_OPTION ] );
+	}
+
+	public function test_held_comment_that_passes_is_approved_if_it_would_have_been() {
+		$comment = $this->prepare_held_comment_check( '1' );
+		Functions\when( 'wp_mail_validator_check_mail_address' )->justReturn( Checker::VALID_MAIL );
+		Functions\expect( 'wp_set_comment_status' )->once()->with( $comment, 'approve' );
+		Functions\expect( 'wp_new_comment_notify_moderator' )->never();
+
+		wp_mail_validator_check_held_comment( 5 );
+	}
+
+	public function test_held_comment_that_passes_stays_pending_and_moderators_are_notified() {
+		$this->prepare_held_comment_check( '0' );
+		Functions\when( 'wp_mail_validator_check_mail_address' )->justReturn( Checker::UNKNOWN );
+		Functions\expect( 'wp_set_comment_status' )->never();
+		Functions\expect( 'wp_new_comment_notify_moderator' )->once()->with( '5' );
+
+		wp_mail_validator_check_held_comment( 5 );
+	}
+
+	public function test_held_comment_already_moderated_is_left_alone() {
+		$this->prepare_held_comment_check( '1', '1' );
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->never();
+		Functions\expect( 'wp_spam_comment' )->never();
+
+		wp_mail_validator_check_held_comment( 5 );
+	}
+
+	public function test_comment_without_held_meta_is_not_checked_again() {
+		Functions\when( 'get_comment' )->justReturn( $this->held_comment() );
+		Functions\when( 'metadata_exists' )->justReturn( false );
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->never();
+
+		wp_mail_validator_check_held_comment( 5 );
+	}
+
+	public function test_deleted_comment_is_not_checked() {
+		Functions\when( 'get_comment' )->justReturn( null );
+		Functions\expect( 'wp_mail_validator_check_mail_address' )->never();
+
+		wp_mail_validator_check_held_comment( 5 );
 	}
 
 	/*
