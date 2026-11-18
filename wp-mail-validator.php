@@ -24,6 +24,8 @@ define( 'WP_MAIL_VALIDATOR_OPTION', 'wp_mail_validator_options' );
 define( 'WP_MAIL_VALIDATOR_COUNTER_OPTION', 'wp_mail_validator_eaten_spam' );
 define( 'WP_MAIL_VALIDATOR_VERSION_OPTION', 'wp_mail_validator_version' );
 define( 'WP_MAIL_VALIDATOR_DISPOSABLE_FILE', __DIR__ . '/data/disposable-email-domains.txt' );
+define( 'WP_MAIL_VALIDATOR_HELD_META', '_wp_mail_validator_held' );
+define( 'WP_MAIL_VALIDATOR_CRON_HOOK', 'wp_mail_validator_check_held_comment' );
 
 require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
 
@@ -39,6 +41,7 @@ require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
 function wp_mail_validator_defaults() {
 	return array(
 		'check_mailbox'                   => 'yes',
+		'check_mailbox_in_background'     => 'yes',
 		'accept_pingbacks'                => 'yes',
 		'accept_trackbacks'               => 'yes',
 		'use_user_defined_blacklist'      => 'no',
@@ -70,6 +73,9 @@ function wp_mail_validator_get_options() {
 function wp_mail_validator_init() {
 	add_filter( 'pre_comment_approved', 'wp_mail_validator_validate_comment_mail', 99, 2 );
 	add_filter( 'registration_errors', 'wp_mail_validator_validate_registration_mail', 99, 3 );
+	add_action( 'wp_insert_comment', 'wp_mail_validator_schedule_held_comment', 10, 2 );
+	add_filter( 'notify_moderator', 'wp_mail_validator_notify_moderator', 10, 2 );
+	add_action( WP_MAIL_VALIDATOR_CRON_HOOK, 'wp_mail_validator_check_held_comment' );
 }
 add_action( 'init', 'wp_mail_validator_init' );
 
@@ -100,10 +106,99 @@ function wp_mail_validator_validate_comment_mail( $approved, $comment_data ) {
 
 	if ( get_option( 'require_name_email' ) && ! get_current_user_id() ) {
 		$mail_address = isset( $comment_data['comment_author_email'] ) ? $comment_data['comment_author_email'] : '';
-		return wp_mail_validator_validate_mail_address( $approved, $mail_address );
+		$result       = wp_mail_validator_check_mail_address( $mail_address, 'yes' === $options['check_mailbox_in_background'] );
+
+		if ( WP_Mail_Validator_Checker::DEFERRED === $result ) {
+			return wp_mail_validator_hold_comment( $approved );
+		}
+
+		return WP_Mail_Validator_Checker::rejects( $result ) ? wp_mail_validator_fend_it() : $approved;
 	}
 
 	return $approved;
+}
+
+/*
+ * Mailbox check in the background
+ *
+ * A comment whose mailbox still has to be probed is held (pending) and checked by a
+ * WP-Cron event right after it was saved, so the commenter does not wait for slow
+ * mail servers. The status WordPress would have given the comment is kept in comment
+ * meta and restored if the address passes; moderators are only notified afterwards.
+ */
+
+/**
+ * Holds a comment for the mailbox check until WordPress has saved it.
+ *
+ * @param int|string $approved Status WordPress would give the comment, 0 or 1.
+ * @return int 0 (pending).
+ */
+function wp_mail_validator_hold_comment( $approved ) {
+	$GLOBALS['wp_mail_validator_held_comment'] = 1 === (int) $approved ? '1' : '0';
+
+	return 0;
+}
+
+/**
+ * Schedules the mailbox check for a comment held by wp_mail_validator_hold_comment().
+ *
+ * @param int        $comment_id Comment ID.
+ * @param WP_Comment $comment    Comment.
+ */
+function wp_mail_validator_schedule_held_comment( $comment_id, $comment ) {
+	$approved = isset( $GLOBALS['wp_mail_validator_held_comment'] ) ? $GLOBALS['wp_mail_validator_held_comment'] : null;
+	unset( $GLOBALS['wp_mail_validator_held_comment'] );
+
+	// Not held by us, or a later filter changed the status (e.g. to spam).
+	if ( null === $approved || '0' !== (string) $comment->comment_approved ) {
+		return;
+	}
+
+	add_comment_meta( $comment_id, WP_MAIL_VALIDATOR_HELD_META, $approved, true );
+	wp_schedule_single_event( time(), WP_MAIL_VALIDATOR_CRON_HOOK, array( (int) $comment_id ) );
+}
+
+/**
+ * Holds back the moderation email while a comment waits for the mailbox check.
+ *
+ * @param bool $maybe_notify Whether to notify the moderators.
+ * @param int  $comment_id   Comment ID.
+ * @return bool
+ */
+function wp_mail_validator_notify_moderator( $maybe_notify, $comment_id ) {
+	return $maybe_notify && ! metadata_exists( 'comment', $comment_id, WP_MAIL_VALIDATOR_HELD_META );
+}
+
+/**
+ * WP-Cron callback: probes the mailbox of a held comment, then moves the comment to
+ * spam or gives it the status WordPress would have given it.
+ *
+ * @param int $comment_id Comment ID.
+ */
+function wp_mail_validator_check_held_comment( $comment_id ) {
+	$comment = get_comment( $comment_id );
+
+	if ( ! $comment || ! metadata_exists( 'comment', $comment->comment_ID, WP_MAIL_VALIDATOR_HELD_META ) ) {
+		return;
+	}
+
+	$approved = get_comment_meta( $comment->comment_ID, WP_MAIL_VALIDATOR_HELD_META, true );
+	delete_comment_meta( $comment->comment_ID, WP_MAIL_VALIDATOR_HELD_META );
+
+	// A moderator has decided in the meantime.
+	if ( '0' !== (string) $comment->comment_approved ) {
+		return;
+	}
+
+	if ( WP_Mail_Validator_Checker::rejects( wp_mail_validator_check_mail_address( $comment->comment_author_email ) ) ) {
+		wp_spam_comment( $comment );
+		wp_mail_validator_fend_it();
+	} elseif ( '1' === $approved ) {
+		// Approving notifies the post author, as for any new approved comment.
+		wp_set_comment_status( $comment, 'approve' );
+	} else {
+		wp_new_comment_notify_moderator( $comment->comment_ID );
+	}
 }
 
 /**
@@ -132,24 +227,35 @@ function wp_mail_validator_validate_registration_mail( $errors, $sanitized_user_
  * @return mixed $approved or 'spam'.
  */
 function wp_mail_validator_validate_mail_address( $approved, $mail_address ) {
+	return WP_Mail_Validator_Checker::rejects( wp_mail_validator_check_mail_address( $mail_address ) )
+		? wp_mail_validator_fend_it()
+		: $approved;
+}
+
+/**
+ * Runs all checks on a mail-address according to the settings.
+ *
+ * @param string $mail_address Mail-address.
+ * @param bool   $defer_probe  Return DEFERRED instead of probing the mailbox now (see WP_Mail_Validator_Checker::validate()).
+ * @return int One of the WP_Mail_Validator_Checker constants.
+ */
+function wp_mail_validator_check_mail_address( $mail_address, $defer_probe = false ) {
 	$options      = wp_mail_validator_get_options();
 	$mail_address = trim( (string) $mail_address );
 
 	if ( 'yes' === $options['use_user_defined_blacklist']
 		&& wp_mail_validator_matches_patterns( $mail_address, $options['user_defined_blacklist'] ) ) {
-		return wp_mail_validator_fend_it();
+		return WP_Mail_Validator_Checker::BLOCKED;
 	}
 
 	if ( 'yes' === $options['use_trashmail_service_blacklist']
 		&& wp_mail_validator_is_disposable_domain( WP_Mail_Validator_Checker::domain_of( $mail_address ) ) ) {
-		return wp_mail_validator_fend_it();
+		return WP_Mail_Validator_Checker::BLOCKED;
 	}
 
 	$checker = new WP_Mail_Validator_Checker( 'yes' === $options['check_mailbox'] );
 
-	return WP_Mail_Validator_Checker::rejects( $checker->validate( $mail_address ) )
-		? wp_mail_validator_fend_it()
-		: $approved;
+	return $checker->validate( $mail_address, $defer_probe );
 }
 
 /**
@@ -418,6 +524,15 @@ function wp_mail_validator_options_page() {
 						? __( 'Status: this server can reach other mail servers.', 'wp-mail-validator' )
 						: __( 'Status: your hosting provider blocks outgoing connections on port 25, so this check is skipped.', 'wp-mail-validator' ) )
 					. '</strong>'
+				);
+				wp_mail_validator_switch_row(
+					$options,
+					'check_mailbox_in_background',
+					__( 'Check the mailbox in the background', 'wp-mail-validator' ),
+					__( 'Visitors do not have to wait for slow mail servers: a comment whose mailbox has not been checked recently is held as pending and checked by WP-Cron right after it was sent. If the mailbox exists, the comment gets the status it would have had anyway; you are only notified about it after the check. Registrations are always checked immediately.', 'wp-mail-validator' )
+					. ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON
+						? ' <strong>' . __( 'WP-Cron is disabled on this site: make sure a server cron job runs it, otherwise held comments stay pending.', 'wp-mail-validator' ) . '</strong>'
+						: '' )
 				);
 				wp_mail_validator_switch_row(
 					$options,

@@ -83,6 +83,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 	}
 
 	protected function tearDown(): void {
+		unset( $GLOBALS['wp_mail_validator_held_comment'] );
 		Monkey\tearDown();
 		parent::tearDown();
 	}
