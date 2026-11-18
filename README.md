@@ -6,7 +6,7 @@
 [![CI](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/kimpenhaus/mail-validator/actions/workflows/ci.yml)
 [![License: GPL v2 or later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 
-A WordPress anti-spam plugin that checks the email address of commenters and registrants. Comments that fail are moved to spam, registrations are refused. Formerly WP-Mail-Validator.
+A WordPress anti-spam plugin that checks the email address of commenters, registrants (also WooCommerce and multisite) and Contact Form 7 senders. Comments that fail are moved to spam, registrations and forms are refused. Formerly WP-Mail-Validator.
 
 **Install it from [WordPress.org](https://wordpress.org/plugins/wp-mail-validator/).** This repository is where it is developed.
 
@@ -15,7 +15,7 @@ A WordPress anti-spam plugin that checks the email address of commenters and reg
 | # | Check | Details |
 |---|-------|---------|
 | 1 | Your blocklist | Regular expressions, one per line, matched case-insensitively |
-| 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly |
+| 2 | Disposable mail services | 10,000+ domains from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains), updated monthly in this repository and shipped with every release |
 | 3 | Syntax | WordPress' `is_email()` |
 | 4 | Mail server | MX record, or A/AAAA record as fallback ([RFC 5321](https://www.rfc-editor.org/rfc/rfc5321#section-5.1)); null MX is rejected |
 | 5 | Mailbox *(optional)* | SMTP `RCPT TO` on port 25, no mail is sent. Rejects only on `5.1.1`/`5.1.10` (recipient unknown); detects catch-all servers, caches results, skips itself when port 25 is blocked. For comments it runs in the background via WP-Cron by default: the comment is held as pending until the check is done |

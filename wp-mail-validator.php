@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mail Validator – Disposable & Fake Address Blocker
  * Plugin URI:        https://github.com/kimpenhaus/mail-validator
- * Description:       Blocks comment and registration spam from disposable and fake email addresses: checks the syntax, the mail server and the mailbox, known disposable email services and your own blocklist.
+ * Description:       Blocks comment, registration and contact form spam from disposable and fake email addresses: checks the syntax, the mail server and the mailbox, known disposable email services and your own blocklist.
  * x-release-please-start-version
  * Version:           0.7.3
  * x-release-please-end
@@ -566,7 +566,7 @@ function wp_mail_validator_options_page() {
 		<form method="post" action="options.php">
 			<?php settings_fields( 'wp_mail_validator' ); ?>
 			<h2><?php esc_html_e( 'Checks', 'wp-mail-validator' ); ?></h2>
-			<p><?php esc_html_e( 'The checks apply to comments of visitors who are not logged in, and to registrations if they are turned on below. Comments are only checked if "Comment author must fill out name and email" is enabled under Settings → Discussion.', 'wp-mail-validator' ); ?></p>
+			<p><?php esc_html_e( 'The checks apply to comments of visitors who are not logged in, and to registrations and contact forms if they are turned on below. Comments are only checked if "Comment author must fill out name and email" is enabled under Settings → Discussion.', 'wp-mail-validator' ); ?></p>
 			<table class="form-table" role="presentation">
 				<?php
 				wp_mail_validator_switch_row(

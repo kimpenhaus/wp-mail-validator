@@ -8,11 +8,11 @@ Stable tag: 0.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Stops comment and registration spam from disposable and fake email addresses: checks syntax, mail server, mailbox and your own blocklist.
+Stops spam from disposable and fake email addresses in comments, registrations and contact forms: checks syntax, mail server, mailbox and blocklist.
 
 == Description ==
 
-Mail Validator (formerly WP-Mail-Validator) checks the email address of everyone who comments on your site and, if you like, of everyone who registers. A comment with an address that fails a check is moved to spam for moderation; a registration is refused.
+Mail Validator (formerly WP-Mail-Validator) checks the email address of everyone who comments on your site and, if you like, of everyone who registers or sends a Contact Form 7 form. A comment with an address that fails a check is moved to spam for moderation; a registration is refused, and a form asks for a different address.
 
 Checks, in this order:
 
@@ -34,14 +34,13 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks carry no
 = Functions for themes and plugins =
 
 * `wp_mail_validator_is_valid_email( $email )` – whether the address passes the checks, with your settings. Rejected addresses are counted. Also available as a filter that is safe to use when the plugin is not active: `apply_filters( 'wp_mail_validator_is_valid_email', true, $email )`
-
 * `wp_mail_validator_info_label( $before, $after )` – a "protected by" label with the number of blocked spam attacks
 * `wp_mail_validator_fended_spam_attack_count()` – the number of blocked spam attacks
 * `wp_mail_validator_version()` – the plugin version
 
 = External services =
 
-To validate an address, the plugin connects to the mail infrastructure of the **commenter's** domain:
+To validate an address – of a commenter, a new user or the sender of a contact form – the plugin connects to the mail infrastructure of the **address's** domain:
 
 * **DNS** – it looks up the MX, A and AAAA records of the domain, using your server's resolver.
 * **SMTP** (only if "Check the mailbox" is on) – it connects to the domain's mail server on port 25 and asks whether it accepts email for the address and for a random address at the same domain (to detect servers that accept anything). The mail server receives your site's host name and the addresses being checked. No email is sent.
@@ -54,7 +53,7 @@ No data is sent to the plugin author or any other third party.
 1. Install the plugin via *Plugins → Add New* and activate it.
 2. Review the settings under *Settings → Mail Validator*.
 
-Comment checks only run if *Settings → Discussion → "Comment author must fill out name and email"* is enabled.
+Comment checks only run if *Settings → Discussion → "Comment author must fill out name and email"* is enabled. Registrations and Contact Form 7 forms are checked once you turn that on in the settings.
 
 == Frequently Asked Questions ==
 
@@ -68,7 +67,7 @@ If the mailbox of an address has not been checked recently, the comment is held 
 
 = Which providers can the mailbox check verify? =
 
-Only those that answer honestly, e.g. Gmail. Outlook, Yahoo and catch-all domains accept any address during the check, so their addresses always pass it.
+Only those that answer honestly, e.g. Gmail. Outlook, Yahoo and catch-all domains accept any address or refuse to answer during the check, so their addresses always pass it.
 
 = Where does the list of disposable domains come from? =
 
