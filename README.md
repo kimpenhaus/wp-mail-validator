@@ -27,7 +27,7 @@ Comments of logged-in users are never checked. Pingbacks and trackbacks can be a
 ```php
 echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by <a …>Mail Validator</a>: <strong>42</strong> spam attacks blocked</p>
 echo wp_mail_validator_fended_spam_attack_count();  // 42
-echo wp_mail_validator_version();                   // 0.7.0
+echo wp_mail_validator_version();                   // the plugin version
 ```
 
 ## Development
@@ -60,11 +60,13 @@ CI runs the tests on PHP 7.4 – 8.4, the coding standards and the official [Plu
 
 ## Releasing
 
-WordPress.org still distributes plugins via SVN – a GitHub Action takes care of it:
+Releases are made by [release-please](https://github.com/googleapis/release-please) from the pull request titles ([Conventional Commits](https://www.conventionalcommits.org/)): `feat:` → new minor version (while below 1.0), `fix:` / `perf:` → patch, `docs:`, `chore:`, `ci:`, … → no release.
 
-1. Bump `Version:` in `wp-mail-validator.php`, `WP_MAIL_VALIDATOR_VERSION`, and `Stable tag:` plus the changelog in `readme.txt`.
-2. Merge to `main`, then tag: `git tag 1.2.3 && git push origin 1.2.3`.
-3. Approve the deployment in the *Actions* tab. The workflow deploys to SVN and creates the GitHub release.
+1. release-please keeps a pull request **"chore: release x.y.z"** open. It bumps the version in the plugin header, `WP_MAIL_VALIDATOR_VERSION` and the manifest, and adds the entry to `CHANGELOG.md`; a workflow copies that entry and the `Stable tag` into `readme.txt` (`.github/scripts/sync-readme.py`). Edit the changelog in that pull request if you like – `readme.txt` follows.
+2. Merge it: release-please creates the tag and the GitHub release.
+3. Approve the deployment in the *Actions* tab. The workflow deploys to WordPress.org (SVN) and attaches the zip to the release.
+
+CI checks that all version numbers agree (`.github/scripts/check-versions.sh`). The upgrade notice in `readme.txt` is still written by hand, in the release pull request.
 
 Banners, icons and screenshots for the plugin page go into `.wordpress-org/` (`banner-1544x500.png`, `icon-256x256.png`, `screenshot-1.png`, …); the deploy workflow uploads them to SVN `assets/`.
 

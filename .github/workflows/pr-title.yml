@@ -1,0 +1,33 @@
+name: PR title
+
+# Pull requests are squash-merged with their title as the commit message, and release-please builds
+# releases and the changelog from those messages. A title it cannot parse would be skipped silently.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    name: Conventional PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # The types of release-please-config.json: feat → minor, fix/perf/revert → patch, others no release.
+          types: |
+            feat
+            fix
+            perf
+            revert
+            docs
+            chore
+            ci
+            test
+            refactor
+            build
+            style
