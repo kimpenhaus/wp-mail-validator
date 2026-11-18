@@ -24,7 +24,16 @@ Checks, in this order:
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks carry no email address; you can choose to accept them or move them to the trash.
 
-= Theme functions =
+= Works with =
+
+* **WooCommerce** – customer accounts created on the "My account" page or during checkout (with *Check registrations*)
+* **Multisite** – sign-ups on the network (with *Check registrations*)
+* **Contact Form 7** – the email fields of all forms (with *Check Contact Form 7*)
+* **Your own forms** – see `wp_mail_validator_is_valid_email()` below
+
+= Functions for themes and plugins =
+
+* `wp_mail_validator_is_valid_email( $email )` – whether the address passes the checks, with your settings. Rejected addresses are counted. Also available as a filter that is safe to use when the plugin is not active: `apply_filters( 'wp_mail_validator_is_valid_email', true, $email )`
 
 * `wp_mail_validator_info_label( $before, $after )` – a "protected by" label with the number of blocked spam attacks
 * `wp_mail_validator_fended_spam_attack_count()` – the number of blocked spam attacks

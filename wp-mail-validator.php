@@ -28,6 +28,9 @@ define( 'WP_MAIL_VALIDATOR_HELD_META', '_wp_mail_validator_held' );
 define( 'WP_MAIL_VALIDATOR_CRON_HOOK', 'wp_mail_validator_check_held_comment' );
 
 require_once __DIR__ . '/includes/class-wp-mail-validator-checker.php';
+require_once __DIR__ . '/includes/integrations/woocommerce.php';
+require_once __DIR__ . '/includes/integrations/multisite.php';
+require_once __DIR__ . '/includes/integrations/contact-form-7.php';
 
 /*
  * Options
@@ -48,6 +51,7 @@ function wp_mail_validator_defaults() {
 		'user_defined_blacklist'          => '',
 		'use_trashmail_service_blacklist' => 'yes',
 		'check_registrations'             => 'no',
+		'check_contact_form_7'            => 'no',
 	);
 }
 
@@ -210,14 +214,64 @@ function wp_mail_validator_check_held_comment( $comment_id ) {
  * @return WP_Error
  */
 function wp_mail_validator_validate_registration_mail( $errors, $sanitized_user_login, $user_email ) {
-	$options = wp_mail_validator_get_options();
-
-	if ( 'yes' === $options['check_registrations'] && 'spam' === wp_mail_validator_validate_mail_address( '', $user_email ) ) {
+	if ( wp_mail_validator_rejects_registration( $user_email ) ) {
 		$errors->add( 'wp_mail-validator-registration-error', __( '<strong>Error:</strong> This email address cannot be used. Please register with a different one.', 'wp-mail-validator' ) );
 	}
 
 	return $errors;
 }
+
+/**
+ * Whether a registration has to be refused, if registrations are checked. Rejections are counted.
+ *
+ * Registrations are checked completely, including the mailbox: they cannot be held for later.
+ *
+ * @param string $mail_address Mail-address of the new user.
+ * @return bool
+ */
+function wp_mail_validator_rejects_registration( $mail_address ) {
+	$options = wp_mail_validator_get_options();
+
+	return 'yes' === $options['check_registrations'] && 'spam' === wp_mail_validator_validate_mail_address( '', $mail_address );
+}
+
+/**
+ * Whether the plugin accepts a mail-address – for themes and other plugins, e.g. custom
+ * forms. Uses the checks and settings of the plugin; a rejected address is counted as a
+ * blocked spam attack.
+ *
+ * If the mailbox is checked in the background, the visitor is not made to wait: the
+ * mailbox only counts if a recent result is cached.
+ *
+ * Also available as a filter, which is safe to call when the plugin is not active:
+ * `apply_filters( 'wp_mail_validator_is_valid_email', true, $mail_address )`.
+ *
+ * @param string $mail_address Mail-address.
+ * @return bool
+ */
+function wp_mail_validator_is_valid_email( $mail_address ) {
+	$options = wp_mail_validator_get_options();
+	$result  = wp_mail_validator_check_mail_address( $mail_address, 'yes' === $options['check_mailbox_in_background'] );
+
+	if ( WP_Mail_Validator_Checker::rejects( $result ) ) {
+		wp_mail_validator_fend_it();
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Filter version of wp_mail_validator_is_valid_email().
+ *
+ * @param bool   $is_valid     Whether the address is valid so far.
+ * @param string $mail_address Mail-address.
+ * @return bool
+ */
+function wp_mail_validator_filter_is_valid_email( $is_valid, $mail_address ) {
+	return $is_valid && wp_mail_validator_is_valid_email( $mail_address );
+}
+add_filter( 'wp_mail_validator_is_valid_email', 'wp_mail_validator_filter_is_valid_email', 10, 2 );
 
 /**
  * Validates a mail-address against the blacklists and the mail server.
@@ -529,7 +583,7 @@ function wp_mail_validator_options_page() {
 					$options,
 					'check_mailbox_in_background',
 					__( 'Check the mailbox in the background', 'wp-mail-validator' ),
-					__( 'Visitors do not have to wait for slow mail servers: a comment whose mailbox has not been checked recently is held as pending and checked by WP-Cron right after it was sent. If the mailbox exists, the comment gets the status it would have had anyway; you are only notified about it after the check. Registrations are always checked immediately.', 'wp-mail-validator' )
+					__( 'Visitors do not have to wait for slow mail servers: a comment whose mailbox has not been checked recently is held as pending and checked by WP-Cron right after it was sent. If the mailbox exists, the comment gets the status it would have had anyway; you are only notified about it after the check. Registrations are always checked immediately; contact forms cannot be held, so for them the mailbox only counts if it was checked recently.', 'wp-mail-validator' )
 					. ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON
 						? ' <strong>' . __( 'WP-Cron is disabled on this site: make sure a server cron job runs it, otherwise held comments stay pending.', 'wp-mail-validator' ) . '</strong>'
 						: '' )
@@ -572,8 +626,22 @@ function wp_mail_validator_options_page() {
 			</table>
 			<h2><?php esc_html_e( 'Registrations', 'wp-mail-validator' ); ?></h2>
 			<table class="form-table" role="presentation">
-				<?php wp_mail_validator_switch_row( $options, 'check_registrations', __( 'Check registrations', 'wp-mail-validator' ), __( 'Apply the checks to the email address of new users. A registration with an address that fails is refused.', 'wp-mail-validator' ) ); ?>
+				<?php
+				wp_mail_validator_switch_row(
+					$options,
+					'check_registrations',
+					__( 'Check registrations', 'wp-mail-validator' ),
+					__( 'Apply the checks to the email address of new users. A registration with an address that fails is refused.', 'wp-mail-validator' )
+					. ' ' . __( 'This includes sign-ups on a multisite network and customer accounts created with WooCommerce.', 'wp-mail-validator' )
+				);
+				?>
 			</table>
+			<?php if ( defined( 'WPCF7_VERSION' ) ) : ?>
+				<h2><?php esc_html_e( 'Contact forms', 'wp-mail-validator' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<?php wp_mail_validator_switch_row( $options, 'check_contact_form_7', __( 'Check Contact Form 7', 'wp-mail-validator' ), __( 'Apply the checks to the email fields of all Contact Form 7 forms. A form with an address that fails is not sent; the visitor is asked for a different address.', 'wp-mail-validator' ) ); ?>
+				</table>
+			<?php endif; ?>
 			<?php submit_button(); ?>
 		</form>
 	</div>

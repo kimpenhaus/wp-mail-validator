@@ -22,7 +22,30 @@ A WordPress anti-spam plugin that checks the email address of commenters and reg
 
 Comments of logged-in users are never checked. Pingbacks and trackbacks can be accepted or dropped.
 
-## Theme functions
+## Integrations
+
+| Plugin | What is checked | Setting | Hook |
+|--------|-----------------|---------|------|
+| WooCommerce | New customer accounts (My account, checkout) | *Check registrations* | `woocommerce_registration_errors` |
+| Multisite | Sign-ups on `wp-signup.php` | *Check registrations* | `wpmu_validate_user_signup` |
+| Contact Form 7 | All email fields | *Check Contact Form 7* (off by default, shown if CF7 is active) | `wpcf7_validate_email`, `wpcf7_validate_email*` |
+
+Each integration is a small file in `includes/integrations/`. Forms cannot be held like comments, so with *Check the mailbox in the background* on, they only use mailbox results that are cached; registrations are always checked completely.
+
+## Functions for themes and plugins
+
+Check addresses in your own forms – with the checks and settings of the plugin:
+
+```php
+// Safe to call when the plugin is not active: returns true then.
+if ( ! apply_filters( 'wp_mail_validator_is_valid_email', true, $email ) ) {
+	// refuse the address
+}
+
+wp_mail_validator_is_valid_email( $email ); // the same as a function
+```
+
+Rejected addresses are counted as blocked spam attacks. For themes:
 
 ```php
 echo wp_mail_validator_info_label( '<p>', '</p>' ); // <p>Protected by <a …>Mail Validator</a>: <strong>42</strong> spam attacks blocked</p>
@@ -52,6 +75,7 @@ docker run --rm -v "$PWD":/app -w /app php:8.4-cli vendor/bin/phpunit
 |------|---------|
 | `wp-mail-validator.php` | Hooks, options, settings page |
 | `includes/class-wp-mail-validator-checker.php` | Syntax, DNS and SMTP checks |
+| `includes/integrations/` | WooCommerce, Multisite, Contact Form 7 |
 | `data/disposable-email-domains.txt` | Bundled disposable domain list |
 | `readme.txt` | Plugin page on WordPress.org – keep it in sync with releases |
 | `.distignore` | Files that are **not** shipped to WordPress.org |
