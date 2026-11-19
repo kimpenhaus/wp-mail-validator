@@ -2,11 +2,13 @@
 
 Sources of the banner and icon in `.wordpress-org/`, which the deploy workflow uploads to the SVN `assets/` folder with every release. This folder is not shipped.
 
-Render the PNGs again after changing `icon.svg` or `banner.html`:
+`social.html` composes `.github/social-preview.png`, the repository's social preview for link previews (1280 × 640), from the icon and two of the screenshots. GitHub takes it only by hand, so a changed one is uploaded under *Settings → General → Social preview*.
+
+Render the PNGs again after changing `icon.svg`, `banner.html`, `social.html` or the screenshots:
 
 ```bash
 docker run --rm --init --platform linux/amd64 \
-  -v "$PWD/assets-src":/src -v "$PWD/.wordpress-org":/out \
+  -v "$PWD/assets-src":/src -v "$PWD/.wordpress-org":/out -v "$PWD/.github":/github \
   -v "$PWD/assets-src/render.js":/home/pptruser/render.js:ro \
   ghcr.io/puppeteer/puppeteer:latest node /home/pptruser/render.js
 cp assets-src/icon.svg .wordpress-org/icon.svg

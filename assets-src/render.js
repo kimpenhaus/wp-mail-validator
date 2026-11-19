@@ -7,12 +7,14 @@ const puppeteer = require('puppeteer');
     ['banner.html', 772, 250, 2, 'banner-1544x500.png'],
     ['icon.html', 256, 256, 1, 'icon-256x256.png'],
     ['icon.html', 256, 256, 0.5, 'icon-128x128.png'],
+    // GitHub's social preview, opaque; GitHub takes it only by hand (Settings → General → Social preview).
+    ['social.html', 1280, 640, 1, '/github/social-preview.png'],
   ];
   for (const [file, w, h, scale, out] of jobs) {
     await page.setViewport({ width: w, height: h, deviceScaleFactor: scale });
     await page.goto('file:///src/' + file, { waitUntil: 'networkidle0' });
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: '/out/' + out, omitBackground: true, clip: { x: 0, y: 0, width: w, height: h } });
+    await page.screenshot({ path: out.startsWith('/') ? out : '/out/' + out, omitBackground: true, clip: { x: 0, y: 0, width: w, height: h } });
   }
   await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });
