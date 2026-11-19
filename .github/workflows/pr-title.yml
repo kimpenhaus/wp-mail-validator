@@ -31,8 +31,8 @@ jobs:
             refactor
             build
             style
-          # Every title names the part it changes, e.g. "feat(integrations): …". Add new parts here. docs and
-          # tooling are for the docs besides the README and the build and lint tools.
+          # Every title names the part it changes, e.g. "feat(integrations): …". Add new parts here.
+          # docs: docs other than the README; tooling: build and lint tools.
           requireScope: true
           scopes: |
             checker

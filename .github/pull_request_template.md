@@ -10,4 +10,4 @@
 
 - [ ] Tested on a current WordPress and PHP version
 - [ ] User input is sanitized, output is escaped
-- [ ] Title follows Conventional Commits with a scope (`feat(integrations): …`, `fix(checker): …`) – it becomes the changelog entry
+- [ ] Title follows the rules in [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md#pull-requests) – it becomes the changelog entry

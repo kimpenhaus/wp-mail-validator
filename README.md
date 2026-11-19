@@ -84,7 +84,7 @@ CI runs the tests on PHP 7.4 – 8.4, the coding standards and the official [Plu
 
 ## Releasing
 
-Releases are made by [release-please](https://github.com/googleapis/release-please) from the pull request titles ([Conventional Commits](https://www.conventionalcommits.org/)): `feat(…):` → new minor version (while below 1.0), `fix(…):` / `perf(…):` → patch, `docs(…):`, `chore(…):`, `ci(…):`, … → no release. Every title needs one of the scopes listed in `.github/workflows/pr-title.yml`, e.g. `feat(integrations): …`, `fix(checker): …`, and a summary in lowercase without a final period.
+Releases are made by [release-please](https://github.com/googleapis/release-please) from the pull request titles ([Conventional Commits](https://www.conventionalcommits.org/)): `feat(…):` → new minor version (while below 1.0), `fix(…):` / `perf(…):` → patch, `docs(…):`, `chore(…):`, `ci(…):`, … → no release. How to write the title: [CONTRIBUTING.md](CONTRIBUTING.md#pull-requests).
 
 1. release-please keeps a pull request **"chore(release): x.y.z"** open. It bumps the version in the plugin header, `WP_MAIL_VALIDATOR_VERSION` and the manifest, and adds the entry to `CHANGELOG.md`; a workflow copies that entry and the `Stable tag` into `readme.txt` (`.github/scripts/sync-readme.py`). Edit the changelog in that pull request if you like – `readme.txt` follows.
 2. Merge it: release-please creates the tag and the GitHub release.
