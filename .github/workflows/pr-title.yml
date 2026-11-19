@@ -31,7 +31,8 @@ jobs:
             refactor
             build
             style
-          # Every title names the part it changes, e.g. "feat(integrations): …". Add new parts here.
+          # Every title names the part it changes, e.g. "feat(integrations): …". Add new parts here. docs and
+          # tooling are for the docs besides the README and the build and lint tools.
           requireScope: true
           scopes: |
             checker
@@ -47,3 +48,8 @@ jobs:
             release
             ci
             deps
+            docs
+            tooling
+          # A digit for release-please's "chore(release): 0.8.0".
+          subjectPattern: ^[a-z0-9].*[^.]$
+          subjectPatternError: The summary "{subject}" must start with a lowercase letter or a digit and must not end with a period.
